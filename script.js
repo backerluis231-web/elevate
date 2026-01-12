@@ -108,7 +108,7 @@ cancelBtn?.addEventListener("click", hideModal);
 modal?.addEventListener("click", (e) => { if (e.target === modal) hideModal(); });
 
 /* ========= Supabase Auth ========= */
-const SUPABASE_URL = "https://rippjxcshbgynurtttar.supabaseClient.co";
+const SUPABASE_URL = "https://rippjxcshbgynurtttar.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpcHBqeGNzaGJneW51cnR0dGFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzYxMjIsImV4cCI6MjA4MzgxMjEyMn0.dtkW8ENJldBYkYwOa5IfB7E2GHI5LOaFuce5-ovM2W4";
 const supabaseClient = window.supabase?.createClient
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
