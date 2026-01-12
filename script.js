@@ -108,9 +108,9 @@ cancelBtn?.addEventListener("click", hideModal);
 modal?.addEventListener("click", (e) => { if (e.target === modal) hideModal(); });
 
 /* ========= Supabase Auth ========= */
-const SUPABASE_URL = "https://rippjxcshbgynurtttar.supabase.co";
+const SUPABASE_URL = "https://rippjxcshbgynurtttar.supabaseClient.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpcHBqeGNzaGJneW51cnR0dGFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzYxMjIsImV4cCI6MjA4MzgxMjEyMn0.dtkW8ENJldBYkYwOa5IfB7E2GHI5LOaFuce5-ovM2W4";
-const supabase = window.supabase?.createClient
+const supabaseClient = window.supabase?.createClient
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
   : null;
 
@@ -128,11 +128,11 @@ function displayUser(user){
 
 async function checkAuth() {
   try {
-    if (!supabase) {
+    if (!supabaseClient) {
       document.body.classList.remove("authed");
       return null;
     }
-    const { data, error } = await supabase.auth.getSession();
+    const { data, error } = await supabaseClient.auth.getSession();
     if (error || !data?.session) {
       document.body.classList.remove("authed");
       return null;
@@ -148,11 +148,11 @@ async function checkAuth() {
 }
 
 async function startOAuth(provider){
-  if (!supabase) {
+  if (!supabaseClient) {
     toast("Login Fehler", "Supabase nicht geladen.");
     return;
   }
-  const { error } = await supabase.auth.signInWithOAuth({
+  const { error } = await supabaseClient.auth.signInWithOAuth({
     provider,
     options: { redirectTo: window.location.origin }
   });
@@ -161,7 +161,7 @@ async function startOAuth(provider){
 
 async function logout(){
   try {
-    await supabase?.auth.signOut();
+    await supabaseClient?.auth.signOut();
   } catch {}
   location.reload();
 }
@@ -188,7 +188,7 @@ function initAppUI(){
   setView(last, { animate: false });
 }
 
-supabase?.auth.onAuthStateChange((_event, session) => {
+supabaseClient?.auth.onAuthStateChange((_event, session) => {
   if (session?.user) {
     document.body.classList.add("authed");
     displayUser(session.user);
@@ -686,6 +686,7 @@ async function boot(){
 }
 
 boot();
+
 
 
 
