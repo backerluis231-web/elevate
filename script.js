@@ -796,7 +796,7 @@ function renderTutorials(){
 
   list.forEach(x => {
     const el = document.createElement("div");
-    el.className = "tcard col-6";
+    el.className = "tcard col-12";
 
     el.innerHTML = `
       <div class="thead">
