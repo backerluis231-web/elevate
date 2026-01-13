@@ -4,6 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Elevate – Skill Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="./style.css" />
 </head>
 
@@ -43,20 +46,21 @@
          LANDING (PUBLIC)
     ========================== -->
     <section class="hero" id="hero" data-auth="public">
-      <div class="wrap hero-card reveal">
-        <div class="badge">Skill Tracker • Tutorials • Quests</div>
-
-        <h1>Level up deine Skills – clean, motivierend, ohne Chaos</h1>
-        <p>
-          Elevate macht Lernen übersichtlich: Skills verwalten, passende Tutorials finden und
-          Quests erledigen, um Fortschritt zu bekommen.
-        </p>
+      <div class="wrap hero-simple reveal">
+        <div class="hero-eyebrow">Skill Tracker fuer fokusiertes Lernen</div>
+        <h1 class="hero-title">
+          <span class="hero-line">Level up</span>
+          <span class="hero-line hero-title-accent">deine Skills</span>
+        </h1>
 
         <div class="cta-row">
           <button class="btn primary" id="openLogin2" type="button">Loslegen</button>
           <a class="btn" href="#why">Warum Elevate?</a>
         </div>
 
+      </div>
+
+      <div class="wrap hero-kpis-wrap reveal">
         <div class="hero-kpis">
           <div class="kpi">
             <div class="kpi-top">UI</div>
@@ -68,38 +72,7 @@
             <div class="kpi-big">Quests</div>
             <div class="kpi-sub">Progress durch Tasks</div>
           </div>
-          <div class="kpi">
-            <div class="kpi-top">Flow</div>
-            <div class="kpi-big">3 Views</div>
-            <div class="kpi-sub">Dashboard • Skills • Tutorials</div>
-          </div>
         </div>
-
-        <div class="hero-strip">
-          <div class="strip-item">
-            <div class="strip-dot"></div>
-            <div>
-              <div class="strip-title">Fokus statt Feature-Flut</div>
-              <div class="strip-sub">Nur das, was du wirklich brauchst.</div>
-            </div>
-          </div>
-          <div class="strip-item">
-            <div class="strip-dot"></div>
-            <div>
-              <div class="strip-title">Schneller Start</div>
-              <div class="strip-sub">Einloggen → Skill → erste Quest.</div>
-            </div>
-          </div>
-          <div class="strip-item">
-            <div class="strip-dot"></div>
-            <div>
-              <div class="strip-title">Motivation</div>
-              <div class="strip-sub">Kleine Aufgaben, sichtbarer Fortschritt.</div>
-            </div>
-          </div>
-        </div>
-
-        <p class="hint">Demo-Login: Username + Passwort frei wählbar.</p>
       </div>
     </section>
 
@@ -136,7 +109,7 @@
 
     <section class="section" id="flow" data-auth="public">
       <div class="wrap">
-        <h2 class="title reveal">So funktioniert’s</h2>
+        <h2 class="title reveal">So funktioniert's</h2>
         <p class="sub reveal">In 3 Schritten – und du bist drin.</p>
 
         <div class="grid">
@@ -162,17 +135,17 @@
 
     <section class="section" id="pro" data-auth="public">
       <div class="wrap">
-        <h2 class="title reveal">Elevate Pro</h2>
-        <p class="sub reveal">Nur ein Design-Preview (keine echte Bezahlung) – aber sieht “real” aus.</p>
+        <h2 class="title reveal">Free vs. Pro</h2>
+        <p class="sub reveal">Klarer Vergleich, ohne echtes Payment.</p>
 
         <div class="grid pricing">
           <div class="card col-6 reveal plan">
             <div class="plan-top">
               <div>
                 <div class="plan-name">Free</div>
-                <div class="plan-sub">Für den Start</div>
+                <div class="plan-sub">Perfekt zum Starten</div>
               </div>
-              <div class="plan-price">0.–</div>
+              <div class="plan-price">0.-</div>
             </div>
             <ul class="plan-list">
               <li>Skill Tracker</li>
@@ -188,7 +161,7 @@
                 <div class="plan-name">Pro</div>
                 <div class="plan-sub">Mehr Motivation</div>
               </div>
-              <div class="plan-price">9.–</div>
+              <div class="plan-price">9.-</div>
             </div>
             <ul class="plan-list">
               <li>Daily Quests + Streaks (später)</li>
@@ -204,28 +177,29 @@
     <section class="section" id="faq" data-auth="public">
       <div class="wrap">
         <h2 class="title reveal">FAQ</h2>
-        <p class="sub reveal">Kurz & klar.</p>
+        <p class="sub reveal">Kurz und klar beantwortet.</p>
 
         <div class="grid">
           <div class="card col-6 reveal">
             <h3>Speichert es meine Daten?</h3>
-            <p>Ja – aktuell lokal im Browser (LocalStorage). Später könnte man Cloud hinzufügen.</p>
+            <p>Ja – aktuell lokal im Browser (LocalStorage). Cloud‑Sync ist später möglich.</p>
           </div>
           <div class="card col-6 reveal">
             <h3>Warum Quests?</h3>
-            <p>Weil “10 Minuten” leichter ist als “2 Stunden”. Kleine Schritte → Progress.</p>
+            <p>Weil kleine Schritte leichter sind. Quests geben dir messbaren Fortschritt.</p>
           </div>
           <div class="card col-6 reveal">
             <h3>Tutorial als Quest?</h3>
-            <p>Ja – in Tutorials “Als Quest (+10)” klicken (wenn ein Ziel-Skill gewählt ist).</p>
+            <p>Ja – in Tutorials „Als Quest (+10)“ klicken, wenn ein Ziel‑Skill gewählt ist.</p>
           </div>
           <div class="card col-6 reveal">
             <h3>Kann ich das Design ändern?</h3>
-            <p>Ja – alles sauber in CSS. Farben, Cards, Hintergrund, Layout.</p>
+            <p>Ja – Farben, Cards, Hintergrund und Layout liegen sauber im CSS.</p>
           </div>
         </div>
       </div>
     </section>
+
 
     <section class="section footer" data-auth="public">
       <div class="wrap">
@@ -270,9 +244,10 @@
 
         <div class="side-bottom">
           <div class="userbox">
-            <div class="avatar" aria-hidden="true"></div>
+            <div class="avatar" aria-hidden="true"><span class="avatar-initials" id="avatarInitials">EU</span></div>
             <div>
               <div class="user-name" id="userNameLabel">User</div>
+              <div class="user-email" id="userEmailLabel"></div>
               <div class="user-sub">eingeloggt</div>
             </div>
           </div>
@@ -325,14 +300,21 @@
                 <strong>4h</strong>
               </div>
             </div>
+            <div class="card col-4">
+              <div class="stat">
+                <div>
+                  <h3>Level</h3>
+                  <p>XP Fortschritt</p>
+                </div>
+                <strong id="xpLevel">1</strong>
+              </div>
+              <div class="xp-bar"><div id="xpBar" style="width:0%"></div></div>
+              <div class="xp-meta" id="xpProgress">0/100 XP</div>
+            </div>
 
             <div class="card col-12">
-              <h3>So startest du (30 Sekunden)</h3>
-              <ol class="steps">
-                <li>Öffne <b>Skills</b> und füge 1 Skill hinzu.</li>
-                <li>Wähle einen Skill bei <b>Quests</b> und schließe eine Quest ab → +Progress.</li>
-                <li>In <b>Tutorials</b> kannst du ein Tutorial als Quest speichern.</li>
-              </ol>
+              <h3>Heute-Plan (3 Schritte)</h3>
+              <ul class="today-list" id="todayPlanList"></ul>
               <div class="row-inline">
                 <button class="btn" id="goSkills" type="button">Zu Skills</button>
                 <button class="btn" id="goTutorials" type="button">Zu Tutorials</button>
@@ -392,16 +374,19 @@
                   </select>
                   <select class="select" id="skillFilter" title="Filtern">
                     <option value="all">Alle</option>
-                    <option value="low">0–39%</option>
-                    <option value="mid">40–69%</option>
-                    <option value="high">70–100%</option>
+                    <option value="low">0-39%</option>
+                    <option value="mid">40-69%</option>
+                    <option value="high">70-100%</option>
                   </select>
+                  <button class="mini-btn" id="skillClearBtn" type="button">Suche leeren</button>
+                  <button class="mini-btn" id="skillResetBtn" type="button">Filter reset</button>
                 </div>
               </div>
 
               <div class="skill-list" id="skillList"></div>
               <p class="hint" id="emptyHint" style="display:none; margin-top:10px;">
                 Noch keine Skills – füge oben links einen hinzu.
+                <button class="btn" id="emptyCta" type="button" style="margin-top:10px;">Skill erstellen</button>
               </p>
             </div>
           </div>
@@ -482,5 +467,7 @@
   <script src="./script.js"></script>
 </body>
 </html>
+
+
 
 

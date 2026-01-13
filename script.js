@@ -320,6 +320,8 @@ const skillFilter = $("skillFilter");
 const skillClearBtn = $("skillClearBtn");
 const skillResetBtn = $("skillResetBtn");
 let editingSkillId = null;
+const todayPlanList = $("todayPlanList");
+const emptyCta = $("emptyCta");
 
 const recoChips = $("recoChips");
 const RECOMMENDED = ["Python", "JavaScript", "Web Design", "UI/UX", "Fitness", "Englisch", "Mathe", "Produktivität"];
@@ -348,6 +350,7 @@ function updateStats(){
   if (statQuests) statQuests.textContent = String(open);
 
   updateXP(skills);
+  renderTodayPlan(skills, open);
 }
 function updateXP(skills){
   if (!xpLevel && !xpProgress && !xpBar) return;
@@ -374,6 +377,34 @@ function renderRecommended(){
     });
     recoChips.appendChild(b);
   });
+}
+
+function renderTodayPlan(skills, openQuests){
+  if (!todayPlanList) return;
+  const hasSkills = skills.length > 0;
+  let items = [];
+
+  if (!hasSkills) {
+    items = [
+      "Einen Skill anlegen",
+      "Progress setzen",
+      "Erste Quest generieren"
+    ];
+  } else if (openQuests > 0) {
+    items = [
+      "Heute eine Quest abschließen",
+      "Progress sichern (+%)",
+      "Ein Tutorial als Quest speichern"
+    ];
+  } else {
+    items = [
+      "Neue Quests generieren",
+      "Skill erweitern oder anpassen",
+      "Kurzes Tutorial starten"
+    ];
+  }
+
+  todayPlanList.innerHTML = items.map(text => `<li>${escapeHTML(text)}</li>`).join("");
 }
 
 function makeQuestTemplates(skillName){
@@ -594,6 +625,25 @@ skillResetBtn?.addEventListener("click", () => {
   if (skillSort) skillSort.value = "name";
   if (skillFilter) skillFilter.value = "all";
   renderSkills();
+});
+emptyCta?.addEventListener("click", () => {
+  setView("skills");
+  skillName?.focus();
+});
+
+document.addEventListener("keydown", (e) => {
+  const tag = (e.target?.tagName || "").toLowerCase();
+  if (tag === "input" || tag === "textarea" || tag === "select") return;
+  if (e.key === "/" ) {
+    e.preventDefault();
+    setView("skills");
+    skillSearch?.focus();
+  }
+  if (e.key.toLowerCase() === "n") {
+    e.preventDefault();
+    setView("skills");
+    skillName?.focus();
+  }
 });
 
 /* ========= Quests ========= */
