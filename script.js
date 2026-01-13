@@ -119,11 +119,26 @@ const microsoftLoginBtn = $("microsoftLoginBtn");
 const logoutTop = $("logoutTop");
 const logoutSide = $("logoutSide");
 const userNameLabel = $("userNameLabel");
+const userEmailLabel = $("userEmailLabel");
+const avatarInitials = $("avatarInitials");
+
+function getInitials(name, email){
+  const base = (name || "").trim();
+  if (base) {
+    const parts = base.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    return parts[0].slice(0, 2).toUpperCase();
+  }
+  if (email) return email.slice(0, 2).toUpperCase();
+  return "EU";
+}
 
 function displayUser(user){
-  if (!userNameLabel) return;
   const meta = user.user_metadata || {};
-  userNameLabel.textContent = meta.full_name || meta.name || user.email || "User";
+  const name = meta.full_name || meta.name || user.email || "User";
+  if (userNameLabel) userNameLabel.textContent = name;
+  if (userEmailLabel) userEmailLabel.textContent = user.email || "";
+  if (avatarInitials) avatarInitials.textContent = getInitials(name, user.email);
 }
 
 async function checkAuth() {
@@ -163,7 +178,12 @@ async function logout(){
   try {
     await supabaseClient?.auth.signOut();
   } catch {}
-  location.reload();
+  try {
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith("sb-")) localStorage.removeItem(key);
+    });
+  } catch {}
+  location.href = "/";
 }
 
 googleLoginBtn?.addEventListener("click", () => startOAuth("google"));
@@ -290,9 +310,16 @@ const emptyHint = $("emptyHint");
 const statActive = $("statActive");
 const statQuests = $("statQuests");
 
+const xpLevel = $("xpLevel");
+const xpProgress = $("xpProgress");
+const xpBar = $("xpBar");
+
 const skillSearch = $("skillSearch");
 const skillSort = $("skillSort");
 const skillFilter = $("skillFilter");
+const skillClearBtn = $("skillClearBtn");
+const skillResetBtn = $("skillResetBtn");
+let editingSkillId = null;
 
 const recoChips = $("recoChips");
 const RECOMMENDED = ["Python", "JavaScript", "Web Design", "UI/UX", "Fitness", "Englisch", "Mathe", "Produktivität"];
@@ -319,6 +346,18 @@ function updateStats(){
     open += (qmap[sid] || []).filter(q => !q.done).length;
   }
   if (statQuests) statQuests.textContent = String(open);
+
+  updateXP(skills);
+}
+function updateXP(skills){
+  if (!xpLevel && !xpProgress && !xpBar) return;
+  const total = skills.reduce((sum, s) => sum + (Number(s.progress) || 0), 0);
+  const level = Math.max(1, Math.floor(total / 100) + 1);
+  const current = total % 100;
+
+  if (xpLevel) xpLevel.textContent = String(level);
+  if (xpProgress) xpProgress.textContent = `${current}/100 XP`;
+  if (xpBar) xpBar.style.width = `${Math.min(100, Math.max(0, current))}%`;
 }
 
 function renderRecommended(){
@@ -387,7 +426,7 @@ function addSkill(name, progress){
   if (exists) { toast("Schon vorhanden", "Diesen Skill hast du bereits."); return; }
 
   const id = uid();
-  skills.unshift({ id, name: trimmed, progress: clamp(progress ?? 50, 0, 100) });
+  skills.unshift({ id, name: trimmed, progress: clamp(progress ?? 50, 0, 100), notes: "" });
   setSkills(skills);
 
   ensureQuestsForSkill(id);
@@ -410,7 +449,26 @@ function updateSkillProgressById(skillId, delta){
   updateStats();
 }
 
+function updateSkillById(skillId, data){
+  const skills = getSkills();
+  const i = skills.findIndex(s => s.id === skillId);
+  if (i === -1) return;
+
+  const nextName = (data.name ?? skills[i].name).trim();
+  const nextNotes = data.notes ?? skills[i].notes ?? "";
+  if (!nextName) return;
+
+  skills[i].name = nextName;
+  skills[i].notes = String(nextNotes);
+  setSkills(skills);
+
+  renderSkills();
+  updateStats();
+}
+
 function deleteSkill(id){
+  const ok = confirm("Skill wirklich loeschen?");
+  if (!ok) return;
   setSkills(getSkills().filter(s => s.id !== id));
 
   const qmap = getQuestMap();
@@ -421,7 +479,7 @@ function deleteSkill(id){
   hydrateSkillSelects();
   renderQuests();
   updateStats();
-  toast("Skill gelöscht", "Und Quests entfernt.");
+  toast("Skill geloescht", "Und Quests entfernt.");
 }
 
 function renderSkills(){
@@ -446,13 +504,18 @@ function renderSkills(){
   skills.forEach(s => {
     const item = document.createElement("div");
     item.className = "skill-item";
+
+    const isEditing = editingSkillId === s.id;
+    const notesText = (s.notes || "").trim();
+
     item.innerHTML = `
       <div class="skill-head">
         <div class="skill-name">${escapeHTML(s.name)}</div>
         <div class="skill-actions">
           <button class="small-btn" data-a="minus" title="-5">-5</button>
           <button class="small-btn" data-a="plus" title="+5">+5</button>
-          <button class="small-btn danger" data-a="del" title="Löschen">✕</button>
+          <button class="small-btn" data-a="edit" title="Bearbeiten">Edit</button>
+          <button class="small-btn danger" data-a="del" title="Loeschen">X</button>
         </div>
       </div>
       <div class="skill-meta">
@@ -460,18 +523,46 @@ function renderSkills(){
         <span><strong>${s.progress}%</strong></span>
       </div>
       <div class="bar"><div style="width:${s.progress}%"></div></div>
+      ${isEditing ? `
+        <div class="skill-edit">
+          <input class="skill-input" id="skillEditName-${s.id}" value="${escapeHTML(s.name)}" />
+          <textarea class="skill-textarea" id="skillEditNotes-${s.id}" rows="3" placeholder="Notizen...">${escapeHTML(notesText)}</textarea>
+          <div class="skill-edit-actions">
+            <button class="small-btn" data-a="save">Speichern</button>
+            <button class="small-btn" data-a="cancel">Abbrechen</button>
+          </div>
+        </div>
+      ` : `
+        <div class="skill-notes">${notesText ? escapeHTML(notesText) : "Notizen: leer"}</div>
+      `}
     `;
 
     item.querySelector('[data-a="minus"]').addEventListener("click", () => updateSkillProgressById(s.id, -5));
     item.querySelector('[data-a="plus"]').addEventListener("click", () => updateSkillProgressById(s.id, +5));
     item.querySelector('[data-a="del"]').addEventListener("click", () => deleteSkill(s.id));
+    item.querySelector('[data-a="edit"]').addEventListener("click", () => {
+      editingSkillId = s.id;
+      renderSkills();
+      document.getElementById(`skillEditName-${s.id}`)?.focus();
+    });
+    item.querySelector('[data-a="cancel"]')?.addEventListener("click", () => {
+      editingSkillId = null;
+      renderSkills();
+    });
+    item.querySelector('[data-a="save"]')?.addEventListener("click", () => {
+      const nameEl = document.getElementById(`skillEditName-${s.id}`);
+      const notesEl = document.getElementById(`skillEditNotes-${s.id}`);
+      const nextName = nameEl?.value || s.name;
+      const nextNotes = notesEl?.value || "";
+      editingSkillId = null;
+      updateSkillById(s.id, { name: nextName, notes: nextNotes });
+    });
 
     skillList.appendChild(item);
   });
 
   updateStats();
 }
-
 if (skillProgress && progressLabel){
   progressLabel.textContent = `${skillProgress.value}%`;
   skillProgress.addEventListener("input", () => {
@@ -483,10 +574,27 @@ addSkillBtn?.addEventListener("click", () => {
   addSkill(skillName?.value || "", Number(skillProgress?.value ?? 50));
   if (skillName) skillName.value = "";
 });
+skillName?.addEventListener("keydown", (e) => {
+  if (e.key !== "Enter") return;
+  e.preventDefault();
+  addSkill(skillName?.value || "", Number(skillProgress?.value ?? 50));
+  if (skillName) skillName.value = "";
+});
 
 skillSearch?.addEventListener("input", renderSkills);
 skillSort?.addEventListener("change", renderSkills);
 skillFilter?.addEventListener("change", renderSkills);
+skillClearBtn?.addEventListener("click", () => {
+  if (skillSearch) skillSearch.value = "";
+  renderSkills();
+  skillSearch?.focus();
+});
+skillResetBtn?.addEventListener("click", () => {
+  if (skillSearch) skillSearch.value = "";
+  if (skillSort) skillSort.value = "name";
+  if (skillFilter) skillFilter.value = "all";
+  renderSkills();
+});
 
 /* ========= Quests ========= */
 const questSkillSelect = $("questSkillSelect");
@@ -686,6 +794,8 @@ async function boot(){
 }
 
 boot();
+
+
 
 
 
