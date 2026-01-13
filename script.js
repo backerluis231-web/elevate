@@ -8,7 +8,6 @@ const LS = {
   skills: "elevate_skills",
   view: "elevate_view",
   quests: "elevate_quests", // { [skillId]: Quest[] }
-  demoUser: "elevate_demo_user",
   lastLevel: "elevate_last_level"
 };
 
@@ -89,9 +88,10 @@ const openLogin5 = $("openLogin5");
 
 const closeModal = $("closeModal");
 const cancelBtn = $("cancelBtn");
-const demoName = $("demoName");
-const demoEmail = $("demoEmail");
-const demoLoginBtn = $("demoLoginBtn");
+const emailLogin = $("emailLogin");
+const passwordLogin = $("passwordLogin");
+const loginEmailBtn = $("loginEmailBtn");
+const signupEmailBtn = $("signupEmailBtn");
 
 function openModal(){
   if (!modal) return;
@@ -146,31 +146,8 @@ function displayUser(user){
   if (avatarInitials) avatarInitials.textContent = getInitials(name, user.email);
 }
 
-function getDemoUser(){
-  return loadJSON(LS.demoUser, null);
-}
-function setDemoUser(name, email){
-  const safeName = (name || "Demo User").trim() || "Demo User";
-  const safeEmail = (email || "demo@example.com").trim() || "demo@example.com";
-  const user = {
-    email: safeEmail,
-    user_metadata: { name: safeName }
-  };
-  saveJSON(LS.demoUser, user);
-  return user;
-}
-function clearDemoUser(){
-  localStorage.removeItem(LS.demoUser);
-}
-
 async function checkAuth() {
   try {
-    const demo = getDemoUser();
-    if (demo) {
-      document.body.classList.add("authed");
-      displayUser(demo);
-      return demo;
-    }
     if (!supabaseClient) {
       document.body.classList.remove("authed");
       return null;
@@ -202,11 +179,39 @@ async function startOAuth(provider){
   if (error) toast("Login fehlgeschlagen", error.message);
 }
 
+async function emailAuth(mode){
+  if (!supabaseClient) {
+    toast("Login Fehler", "Supabase nicht geladen.");
+    return;
+  }
+  const email = (emailLogin?.value || "").trim();
+  const password = (passwordLogin?.value || "").trim();
+  if (!email || !password) {
+    toast("Fehlende Daten", "E-Mail und Passwort eingeben.");
+    return;
+  }
+
+  if (mode === "signup") {
+    const { data, error } = await supabaseClient.auth.signUp({ email, password });
+    if (error) {
+      toast("Signup fehlgeschlagen", error.message);
+      return;
+    }
+    hideModal();
+    if (data?.session) toast("Erfolgreich", "Account erstellt.");
+    else toast("Bestaetigung", "Check deine E-Mail.");
+    return;
+  }
+
+  const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+  if (error) toast("Login fehlgeschlagen", error.message);
+  else hideModal();
+}
+
 async function logout(){
   try {
     await supabaseClient?.auth.signOut();
   } catch {}
-  clearDemoUser();
   try {
     Object.keys(localStorage).forEach((key) => {
       if (key.startsWith("sb-")) localStorage.removeItem(key);
@@ -219,13 +224,8 @@ googleLoginBtn?.addEventListener("click", () => startOAuth("google"));
 microsoftLoginBtn?.addEventListener("click", () => startOAuth("microsoft"));
 logoutTop?.addEventListener("click", logout);
 logoutSide?.addEventListener("click", logout);
-demoLoginBtn?.addEventListener("click", () => {
-  const user = setDemoUser(demoName?.value, demoEmail?.value);
-  hideModal();
-  document.body.classList.add("authed");
-  displayUser(user);
-  initAppUI();
-});
+loginEmailBtn?.addEventListener("click", () => emailAuth("login"));
+signupEmailBtn?.addEventListener("click", () => emailAuth("signup"));
 
 let appInitialized = false;
 function initAppUI(){
@@ -245,7 +245,6 @@ function initAppUI(){
 }
 
 supabaseClient?.auth.onAuthStateChange((_event, session) => {
-  if (getDemoUser()) return;
   if (session?.user) {
     document.body.classList.add("authed");
     displayUser(session.user);
