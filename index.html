@@ -37,6 +37,9 @@
         <span class="icon-sun" aria-hidden="true">☀</span>
         <span class="icon-moon" aria-hidden="true">🌙</span>
       </button>
+      <button class="level-badge top-level-badge" id="openRewardsTop" data-auth="private" type="button" title="Belohnungen anzeigen">
+        Lv <span id="levelBadgeTop">1</span>
+      </button>
       <button class="ghost" id="logoutTop" data-auth="private" type="button">Logout</button>
     </nav>
   </header>
@@ -250,6 +253,9 @@
               <div class="user-email" id="userEmailLabel"></div>
               <div class="user-sub">eingeloggt</div>
             </div>
+            <button class="level-badge" id="openRewards" type="button" title="Belohnungen anzeigen">
+              Lv <span id="levelBadge">1</span>
+            </button>
           </div>
 
           <button class="btn danger" id="logoutSide" type="button">Logout</button>
@@ -319,6 +325,12 @@
                 <button class="btn" id="goSkills" type="button">Zu Skills</button>
                 <button class="btn" id="goTutorials" type="button">Zu Tutorials</button>
               </div>
+            </div>
+
+            <div class="card col-12">
+              <h3>Belohnungen</h3>
+              <ul class="rewards-list" id="rewardsList"></ul>
+              <p class="hint" id="rewardsHint"></p>
             </div>
           </div>
         </section>
@@ -441,7 +453,7 @@
 
       <div class="form">
   <p class="hint" style="margin-top:0;">
-    Login ist jetzt “echt” über OAuth. Wähle einen Anbieter:
+    Login ist jetzt "echt" über OAuth. Wähle einen Anbieter:
   </p>
 
     <button class="btn primary" style="width:100%; justify-content:center;" id="googleLoginBtn" type="button">
@@ -451,12 +463,37 @@
   <button class="btn" style="width:100%; justify-content:center;" id="microsoftLoginBtn" type="button">
     Mit Microsoft einloggen
   </button>
+
+  <div class="divider"></div>
+  <p class="hint" style="margin-top:0;">Demo-Login (ohne Google):</p>
+  <label class="label">
+    Name
+    <input class="input" id="demoName" placeholder="z.B. Alex" />
+  </label>
+  <label class="label">
+    E-Mail
+    <input class="input" id="demoEmail" placeholder="demo@example.com" />
+  </label>
+  <button class="btn" style="width:100%; justify-content:center;" id="demoLoginBtn" type="button">
+    Demo-Login
+  </button>
 </div>
 
 <div class="row">
   <button class="btn" id="cancelBtn" type="button">Abbrechen</button>
 </div>
 
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="rewardsModal">
+    <div class="modal rewards-modal">
+      <div class="modal-head">
+        <div class="modal-title">Belohnungen</div>
+        <button class="icon-btn" id="closeRewards" type="button" aria-label="Schließen">×</button>
+      </div>
+      <p class="hint" id="rewardsModalHint"></p>
+      <div class="rewards-scroll" id="rewardsCarousel"></div>
     </div>
   </div>
 

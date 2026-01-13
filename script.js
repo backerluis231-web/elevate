@@ -7,7 +7,9 @@ const LS = {
   theme: "elevate_theme",
   skills: "elevate_skills",
   view: "elevate_view",
-  quests: "elevate_quests" // { [skillId]: Quest[] }
+  quests: "elevate_quests", // { [skillId]: Quest[] }
+  demoUser: "elevate_demo_user",
+  lastLevel: "elevate_last_level"
 };
 
 function $(id){ return document.getElementById(id); }
@@ -87,6 +89,9 @@ const openLogin5 = $("openLogin5");
 
 const closeModal = $("closeModal");
 const cancelBtn = $("cancelBtn");
+const demoName = $("demoName");
+const demoEmail = $("demoEmail");
+const demoLoginBtn = $("demoLoginBtn");
 
 function openModal(){
   if (!modal) return;
@@ -141,8 +146,31 @@ function displayUser(user){
   if (avatarInitials) avatarInitials.textContent = getInitials(name, user.email);
 }
 
+function getDemoUser(){
+  return loadJSON(LS.demoUser, null);
+}
+function setDemoUser(name, email){
+  const safeName = (name || "Demo User").trim() || "Demo User";
+  const safeEmail = (email || "demo@example.com").trim() || "demo@example.com";
+  const user = {
+    email: safeEmail,
+    user_metadata: { name: safeName }
+  };
+  saveJSON(LS.demoUser, user);
+  return user;
+}
+function clearDemoUser(){
+  localStorage.removeItem(LS.demoUser);
+}
+
 async function checkAuth() {
   try {
+    const demo = getDemoUser();
+    if (demo) {
+      document.body.classList.add("authed");
+      displayUser(demo);
+      return demo;
+    }
     if (!supabaseClient) {
       document.body.classList.remove("authed");
       return null;
@@ -178,6 +206,7 @@ async function logout(){
   try {
     await supabaseClient?.auth.signOut();
   } catch {}
+  clearDemoUser();
   try {
     Object.keys(localStorage).forEach((key) => {
       if (key.startsWith("sb-")) localStorage.removeItem(key);
@@ -190,6 +219,13 @@ googleLoginBtn?.addEventListener("click", () => startOAuth("google"));
 microsoftLoginBtn?.addEventListener("click", () => startOAuth("microsoft"));
 logoutTop?.addEventListener("click", logout);
 logoutSide?.addEventListener("click", logout);
+demoLoginBtn?.addEventListener("click", () => {
+  const user = setDemoUser(demoName?.value, demoEmail?.value);
+  hideModal();
+  document.body.classList.add("authed");
+  displayUser(user);
+  initAppUI();
+});
 
 let appInitialized = false;
 function initAppUI(){
@@ -209,6 +245,7 @@ function initAppUI(){
 }
 
 supabaseClient?.auth.onAuthStateChange((_event, session) => {
+  if (getDemoUser()) return;
   if (session?.user) {
     document.body.classList.add("authed");
     displayUser(session.user);
@@ -322,6 +359,16 @@ const skillResetBtn = $("skillResetBtn");
 let editingSkillId = null;
 const todayPlanList = $("todayPlanList");
 const emptyCta = $("emptyCta");
+const rewardsList = $("rewardsList");
+const rewardsHint = $("rewardsHint");
+const rewardsModal = $("rewardsModal");
+const closeRewards = $("closeRewards");
+const openRewards = $("openRewards");
+const openRewardsTop = $("openRewardsTop");
+const rewardsCarousel = $("rewardsCarousel");
+const rewardsModalHint = $("rewardsModalHint");
+const levelBadge = $("levelBadge");
+const levelBadgeTop = $("levelBadgeTop");
 
 const recoChips = $("recoChips");
 const RECOMMENDED = ["Python", "JavaScript", "Web Design", "UI/UX", "Fitness", "Englisch", "Mathe", "Produktivität"];
@@ -359,8 +406,21 @@ function updateXP(skills){
   const current = total % 100;
 
   if (xpLevel) xpLevel.textContent = String(level);
+  if (levelBadge) levelBadge.textContent = String(level);
+  if (levelBadgeTop) levelBadgeTop.textContent = String(level);
   if (xpProgress) xpProgress.textContent = `${current}/100 XP`;
   if (xpBar) xpBar.style.width = `${Math.min(100, Math.max(0, current))}%`;
+
+  const prevLevel = Number(localStorage.getItem(LS.lastLevel) || "1");
+  if (level > prevLevel) {
+    localStorage.setItem(LS.lastLevel, String(level));
+    const reward = getRewardForLevel(level);
+    if (reward) toast("Level up!", reward);
+    else toast("Level up!", `Level ${level} erreicht`);
+  }
+
+  renderRewards(level);
+  renderRewardsCarousel(level);
 }
 
 function renderRecommended(){
@@ -379,6 +439,81 @@ function renderRecommended(){
   });
 }
 
+const REWARDS = [
+  { level: 2, title: "Bronze Badge", category: "Badges", desc: "Erstes Profil-Badge freigeschaltet." },
+  { level: 3, title: "Focus Theme", category: "Theme", desc: "Ruhiger Farbmodus fuer Fokus." },
+  { level: 4, title: "Quest Booster", category: "Quests", desc: "+1 Extra-Quest pro Skill." },
+  { level: 5, title: "Streak Boost", category: "Streak", desc: "Streak zeigt dir 7-Tage-Serie." },
+  { level: 6, title: "Milestone Frame", category: "Profil", desc: "Avatar-Rahmen fuer Meilensteine." },
+  { level: 7, title: "Pro Highlight", category: "Pro", desc: "Skill-Karten mit Highlight." },
+  { level: 8, title: "Weekly Summary", category: "Insights", desc: "Kurzer Wochen-Rueckblick." }
+];
+
+function getRewardForLevel(level){
+  const r = REWARDS.find(x => x.level === level);
+  return r ? `Belohnung: ${r.title}` : "";
+}
+
+function renderRewards(level){
+  if (!rewardsList) return;
+  const items = REWARDS.map(r => {
+    const unlocked = level >= r.level;
+    const tag = r.category ? `${escapeHTML(r.category)} · ` : "";
+    const meta = unlocked ? `${tag}Freigeschaltet` : `${tag}Level ${r.level}`;
+    return `
+      <li class="${unlocked ? "reward unlocked" : "reward"}">
+        <span class="reward-title">${escapeHTML(r.title)}</span>
+        <span class="reward-meta">${meta}</span>
+      </li>
+    `;
+  }).join("");
+  rewardsList.innerHTML = items;
+  updateRewardHints(level);
+}
+
+function updateRewardHints(level){
+  const next = REWARDS.find(r => r.level > level);
+  const text = next
+    ? `Naechste Belohnung bei Level ${next.level}.`
+    : "Alle Belohnungen freigeschaltet.";
+  if (rewardsHint) rewardsHint.textContent = text;
+  if (rewardsModalHint) rewardsModalHint.textContent = text;
+}
+
+function renderRewardsCarousel(level){
+  if (!rewardsCarousel) return;
+  rewardsCarousel.innerHTML = REWARDS.map(r => {
+    const unlocked = level >= r.level;
+    const status = unlocked ? "Freigeschaltet" : `Level ${r.level}`;
+    const tag = r.category ? `<div class="reward-card-tag">${escapeHTML(r.category)}</div>` : "";
+    const desc = r.desc ? `<div class="reward-card-desc">${escapeHTML(r.desc)}</div>` : "";
+    return `
+      <div class="reward-card${unlocked ? " unlocked" : ""}">
+        <div class="reward-card-level">Level ${r.level}</div>
+        <div class="reward-card-title">${escapeHTML(r.title)}</div>
+        ${tag}
+        ${desc}
+        <div class="reward-card-meta">${status}</div>
+      </div>
+    `;
+  }).join("");
+}
+
+function openRewardsModal(){
+  if (!rewardsModal) return;
+  rewardsModal.style.display = "flex";
+}
+function closeRewardsModal(){
+  if (!rewardsModal) return;
+  rewardsModal.style.display = "none";
+}
+
+openRewards?.addEventListener("click", openRewardsModal);
+openRewardsTop?.addEventListener("click", openRewardsModal);
+closeRewards?.addEventListener("click", closeRewardsModal);
+rewardsModal?.addEventListener("click", (e) => {
+  if (e.target === rewardsModal) closeRewardsModal();
+});
 function renderTodayPlan(skills, openQuests){
   if (!todayPlanList) return;
   const hasSkills = skills.length > 0;

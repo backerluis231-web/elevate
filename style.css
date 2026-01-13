@@ -514,6 +514,31 @@ body[data-theme="dark"] .sidebar{ border: 1px solid rgba(255,255,255,.10); }
   background: rgba(79,70,229,.08);
   border: 1px solid rgba(79,70,229,.12);
 }
+.rewards-list{
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+  list-style: none;
+  padding-left: 0;
+}
+.reward{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(148,163,184,.14);
+  border: 1px solid rgba(148,163,184,.22);
+  color: var(--muted);
+}
+.reward.unlocked{
+  background: rgba(34,197,94,.12);
+  border-color: rgba(34,197,94,.18);
+  color: #16a34a;
+}
+.reward-title{ font-weight: 900; }
+.reward-meta{ font-size: .85rem; font-weight: 800; }
 
 /* Forms */
 .form-row{ display:flex; flex-direction: column; gap: 12px; margin-top: 10px; }
@@ -769,6 +794,29 @@ body[data-theme="dark"] .select{ background: rgba(0,0,0,.22); }
   padding: 16px;
   backdrop-filter: blur(12px);
 }
+.rewards-modal{
+  width: min(900px, 100%);
+  padding: 22px;
+}
+.rewards-modal .modal-head{
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(79,70,229,.12);
+}
+.rewards-modal .modal-title{
+  display:flex;
+  align-items:center;
+  gap: 8px;
+  font-weight: 950;
+  font-size: 1.1rem;
+}
+.rewards-modal .modal-title::before{
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  box-shadow: 0 8px 16px rgba(79,70,229,.22);
+}
 .modal-head{ display:flex; justify-content: space-between; align-items:center; margin-bottom: 10px; }
 .modal-title{ font-weight: 950; font-size: 1.1rem; }
 .form{ display:flex; flex-direction: column; gap: 12px; margin-top: 10px; }
@@ -837,6 +885,22 @@ h1, h2, h3, .title, .app-title, .brand, .plan-name, .kpi-big, .tname{ font-famil
 .avatar{ display:flex; align-items:center; justify-content:center; }
 .avatar-initials{ color: white; font-weight: 900; font-size: .95rem; letter-spacing: .04em; }
 .user-email{ color: var(--muted); font-size: .85rem; margin-top: 2px; }
+.level-badge{
+  margin-left: auto;
+  border: 1px solid rgba(79,70,229,.25);
+  background: rgba(79,70,229,.12);
+  color: var(--accent);
+  border-radius: 12px;
+  padding: 6px 10px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.level-badge:hover{ filter: brightness(1.05); }
+.top-level-badge{
+  padding: 8px 12px;
+  font-size: .95rem;
+}
 
 /* XP */
 .xp-bar{
@@ -853,3 +917,58 @@ h1, h2, h3, .title, .app-title, .brand, .plan-name, .kpi-big, .tname{ font-famil
   transition: width .25s ease;
 }
 .xp-meta{ color: var(--muted); font-weight: 800; margin-top: 6px; font-size: .9rem; }
+
+.rewards-scroll{
+  display:flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-top: 10px;
+  scroll-snap-type: x mandatory;
+}
+.reward-card{
+  min-width: 180px;
+  border-radius: 16px;
+  padding: 12px;
+  background: var(--card2);
+  border: 1px solid rgba(148,163,184,.22);
+  color: var(--muted);
+  scroll-snap-align: start;
+}
+.reward-card.unlocked{
+  background: rgba(34,197,94,.12);
+  border-color: rgba(34,197,94,.18);
+  color: #16a34a;
+}
+.reward-card-level{
+  font-weight: 800;
+  font-size: .85rem;
+  color: var(--muted);
+}
+.reward-card-title{
+  font-weight: 950;
+  margin-top: 8px;
+}
+.reward-card-meta{
+  margin-top: 6px;
+  font-size: .85rem;
+  font-weight: 800;
+}
+.reward-card-tag{
+  margin-top: 8px;
+  display: inline-flex;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: .75rem;
+  font-weight: 900;
+  background: rgba(79,70,229,.12);
+  color: var(--accent);
+  border: 1px solid rgba(79,70,229,.16);
+}
+.reward-card-desc{
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: .85rem;
+  line-height: 1.4;
+}
+
