@@ -433,38 +433,52 @@
         </section>
 
         <footer class="app-footer">
-          <div class="wrap">
-            <p class="hint">Login mit E-Mail/Passwort oder OAuth.</p>
-
-<div class="form">
-  <label class="label">
-    E-Mail
-    <input class="input" id="emailLogin" type="email" placeholder="name@domain.com" />
-  </label>
-  <label class="label">
-    Passwort
-    <input class="input" id="passwordLogin" type="password" placeholder="********" />
-  </label>
-  <div class="row" style="justify-content:flex-start; margin-top:0;">
-    <button class="btn primary" id="loginEmailBtn" type="button">Einloggen</button>
-    <button class="btn" id="signupEmailBtn" type="button">Account erstellen</button>
+  <div class="wrap">
+    <p class="hint">Elevate App - Clean UI - Speichert lokal (LocalStorage)</p>
   </div>
+</footer>
+      </div>
+    </div>
+  </main>
 
-  <div class="divider"></div>
-  <p class="hint" style="margin-top:0;">Oder mit OAuth:</p>
-  <button class="btn primary" style="width:100%; justify-content:center;" id="googleLoginBtn" type="button">
-    Mit Google einloggen
-  </button>
+  <!-- LOGIN MODAL -->
+  <div class="modal-backdrop" id="modal">
+    <div class="modal">
+      <div class="modal-head">
+        <div class="modal-title">Login</div>
+        <button class="icon-btn" id="closeModal" type="button" aria-label="Schliessen">x</button>
+      </div>
 
-  <button class="btn" style="width:100%; justify-content:center;" id="microsoftLoginBtn" type="button">
-    Mit Microsoft einloggen
-  </button>
-</div>
+      <p class="hint">Login mit E-Mail/Passwort oder OAuth.</p>
 
-<div class="row">
-  <button class="btn" id="cancelBtn" type="button">Abbrechen</button>
-</div>
+      <div class="form">
+        <label class="label">
+          E-Mail
+          <input class="input" id="emailLogin" type="email" placeholder="name@domain.com" />
+        </label>
+        <label class="label">
+          Passwort
+          <input class="input" id="passwordLogin" type="password" placeholder="********" />
+        </label>
+        <div class="row" style="justify-content:flex-start; margin-top:0;">
+          <button class="btn primary" id="loginEmailBtn" type="button">Einloggen</button>
+          <button class="btn" id="signupEmailBtn" type="button">Account erstellen</button>
+        </div>
 
+        <div class="divider"></div>
+        <p class="hint" style="margin-top:0;">Oder mit OAuth:</p>
+        <button class="btn primary" style="width:100%; justify-content:center;" id="googleLoginBtn" type="button">
+          Mit Google einloggen
+        </button>
+
+        <button class="btn" style="width:100%; justify-content:center;" id="microsoftLoginBtn" type="button">
+          Mit Microsoft einloggen
+        </button>
+      </div>
+
+      <div class="row">
+        <button class="btn" id="cancelBtn" type="button">Abbrechen</button>
+      </div>
     </div>
   </div>
 
@@ -472,7 +486,7 @@
     <div class="modal rewards-modal">
       <div class="modal-head">
         <div class="modal-title">Belohnungen</div>
-        <button class="icon-btn" id="closeRewards" type="button" aria-label="Schließen">×</button>
+        <button class="icon-btn" id="closeRewards" type="button" aria-label="Schliessen">x</button>
       </div>
       <p class="hint" id="rewardsModalHint"></p>
       <div class="rewards-scroll" id="rewardsCarousel"></div>
@@ -482,12 +496,7 @@
   <!-- Toast Container -->
   <div class="toasts" id="toasts" aria-live="polite" aria-atomic="true"></div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./script.js"></script>
 </body>
 </html>
-
-
-
-
-
