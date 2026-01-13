@@ -140,9 +140,11 @@ function getInitials(name, email){
 
 function displayUser(user){
   const meta = user.user_metadata || {};
-  const name = meta.full_name || meta.name || user.email || "User";
+  const email = user.email || "";
+  const emailName = email ? email.split("@")[0] : "";
+  const name = meta.full_name || meta.name || emailName || email || "User";
   if (userNameLabel) userNameLabel.textContent = name;
-  if (userEmailLabel) userEmailLabel.textContent = user.email || "";
+  if (userEmailLabel) userEmailLabel.textContent = email;
   if (avatarInitials) avatarInitials.textContent = getInitials(name, user.email);
 }
 

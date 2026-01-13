@@ -455,7 +455,13 @@ body[data-theme="dark"] .sidebar{ border: 1px solid rgba(255,255,255,.10); }
   background: linear-gradient(135deg, var(--accent), var(--accent2));
   box-shadow: 0 14px 24px rgba(79,70,229,.20);
 }
-.user-name{ font-weight: 950; }
+.user-name{
+  font-weight: 950;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .user-sub{ color: var(--muted); font-size: .9rem; }
 
 .app-main{ padding-bottom: 24px; }
