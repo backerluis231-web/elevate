@@ -442,21 +442,33 @@ body[data-theme="dark"] .sidebar{ border: 1px solid rgba(255,255,255,.10); }
 .side-link.active{ background: rgba(79,70,229,.14); border-color: rgba(79,70,229,.22); }
 
 .userbox{
-  display:flex; align-items:center; gap: 10px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
   padding: 12px;
   border-radius: 16px;
   background: var(--card);
   border: 1px solid rgba(255,255,255,.35);
   margin-bottom: 12px;
+  overflow: hidden;
 }
 .avatar{
   width: 38px; height: 38px;
   border-radius: 12px;
   background: linear-gradient(135deg, var(--accent), var(--accent2));
   box-shadow: 0 14px 24px rgba(79,70,229,.20);
+  flex: 0 0 auto;
 }
+.userbox > div{ min-width: 0; }
 .user-name{
   font-weight: 950;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.user-email{
   max-width: 150px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -892,7 +904,6 @@ h1, h2, h3, .title, .app-title, .brand, .plan-name, .kpi-big, .tname{ font-famil
 .avatar-initials{ color: white; font-weight: 900; font-size: .95rem; letter-spacing: .04em; }
 .user-email{ color: var(--muted); font-size: .85rem; margin-top: 2px; }
 .level-badge{
-  margin-left: auto;
   border: 1px solid rgba(79,70,229,.25);
   background: rgba(79,70,229,.12);
   color: var(--accent);
@@ -901,6 +912,7 @@ h1, h2, h3, .title, .app-title, .brand, .plan-name, .kpi-big, .tname{ font-famil
   font-weight: 900;
   cursor: pointer;
   white-space: nowrap;
+  flex: 0 0 auto;
 }
 .level-badge:hover{ filter: brightness(1.05); }
 .top-level-badge{
