@@ -205,7 +205,7 @@ async function startOAuth(provider){
   }
   const { error } = await supabaseClient.auth.signInWithOAuth({
     provider,
-    options: { redirectTo: window.location.origin }
+    options: { redirectTo: window.location.origin + "/index.html" }
   });
   if (error) toast("Login fehlgeschlagen", error.message);
 }
@@ -244,18 +244,24 @@ async function emailAuth(mode){
       options: { data: { username, full_name: fullNameValue } }
     });
     if (error) {
-      toast("Signup fehlgeschlagen", error.message);
+      const msg = (error.message || "").toLowerCase();
+      if (msg.includes("already registered") || msg.includes("already exists") || msg.includes("user already")) {
+        toast("E-Mail bereits registriert", "Bitte einloggen oder Passwort zuruecksetzen.");
+      } else {
+        toast("Signup fehlgeschlagen", error.message);
+      }
       return;
     }
-    document.getElementById("appShell")?.scrollIntoView({ behavior: "smooth" });
-    if (data?.session) toast("Erfolgreich", "Account erstellt.");
+    if (data?.session) {
+      window.location.href = "./index.html";
+    }
     else toast("Bestaetigung", "Check deine E-Mail.");
     return;
   }
 
   const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
   if (error) toast("Login fehlgeschlagen", error.message);
-  else document.getElementById("appShell")?.scrollIntoView({ behavior: "smooth" });
+  else window.location.href = "./index.html";
 }
 
 async function logout(){
@@ -299,6 +305,9 @@ supabaseClient?.auth.onAuthStateChange((_event, session) => {
     displayUser(session.user);
     syncProfile(session.user);
     initAppUI();
+    if (window.location.pathname.endsWith("/login.html")) {
+      window.location.href = "./index.html";
+    }
   } else {
     document.body.classList.remove("authed");
   }
