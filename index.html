@@ -235,20 +235,43 @@
         <div class="side-top">
           <div class="side-brand">
             <span class="brand-dot"></span>
-            <span>Elevate</span>
+            <span class="side-label">Elevate</span>
+            <button class="icon-btn collapse-btn" id="toggleSidebar" type="button" aria-pressed="false" title="Sidebar einklappen">≡</button>
           </div>
 
           <nav class="side-nav" aria-label="App Navigation">
-            <button class="side-link active" data-view="dashboard" type="button">Dashboard</button>
-            <button class="side-link" data-view="skills" type="button">Skills</button>
-            <button class="side-link" data-view="tutorials" type="button">Tutorials</button>
+            <button class="side-link active" data-view="dashboard" type="button">
+              <span class="side-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                </svg>
+              </span>
+              <span class="side-label">Dashboard</span>
+            </button>
+            <button class="side-link" data-view="skills" type="button">
+              <span class="side-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M13 3 4 14h6l-1 7 9-11h-6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                </svg>
+              </span>
+              <span class="side-label">Skills</span>
+            </button>
+            <button class="side-link" data-view="tutorials" type="button">
+              <span class="side-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
+                  <path d="M12 7v5l4 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+              <span class="side-label">Tutorials</span>
+            </button>
           </nav>
         </div>
 
         <div class="side-bottom">
           <div class="userbox">
             <div class="avatar" aria-hidden="true"><span class="avatar-initials" id="avatarInitials">EU</span></div>
-            <div>
+            <div class="user-details">
               <div class="user-name" id="userNameLabel">User</div>
               <div class="user-email" id="userEmailLabel"></div>
               <div class="user-sub">eingeloggt</div>
@@ -258,7 +281,15 @@
             </button>
           </div>
 
-          <button class="btn danger" id="logoutSide" type="button">Logout</button>
+          <button class="btn danger" id="logoutSide" type="button">
+            <span class="side-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M10 4h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-8" fill="none" stroke="currentColor" stroke-width="2"/>
+                <path d="M14 12H4m0 0 3-3m-3 3 3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="side-label">Logout</span>
+          </button>
         </div>
       </aside>
 

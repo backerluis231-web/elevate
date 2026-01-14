@@ -8,7 +8,8 @@ const LS = {
   skills: "elevate_skills",
   view: "elevate_view",
   quests: "elevate_quests", // { [skillId]: Quest[] }
-  lastLevel: "elevate_last_level"
+  lastLevel: "elevate_last_level",
+  sidebarCollapsed: "elevate_sidebar_collapsed"
 };
 
 function $(id){ return document.getElementById(id); }
@@ -276,6 +277,20 @@ function initStorageOnce(){
 const viewTitle = $("viewTitle");
 const viewSub = $("viewSub");
 const primaryAction = $("primaryAction");
+const appShell = $("appShell");
+const toggleSidebar = $("toggleSidebar");
+
+function setSidebarCollapsed(collapsed){
+  if (!appShell) return;
+  appShell.classList.toggle("sidebar-collapsed", collapsed);
+  localStorage.setItem(LS.sidebarCollapsed, collapsed ? "1" : "0");
+  if (toggleSidebar) toggleSidebar.setAttribute("aria-pressed", collapsed ? "true" : "false");
+}
+setSidebarCollapsed(localStorage.getItem(LS.sidebarCollapsed) === "1");
+toggleSidebar?.addEventListener("click", () => {
+  const next = !appShell?.classList.contains("sidebar-collapsed");
+  setSidebarCollapsed(next);
+});
 
 const views = {
   dashboard: { el: $("view-dashboard"), title: "Dashboard", sub: "Dein Überblick. Starte mit einem Skill.", action: "Zu Skills" },
