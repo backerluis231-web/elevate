@@ -83,6 +83,7 @@ const emailLogin = $("emailLogin");
 const passwordLogin = $("passwordLogin");
 const loginEmailBtn = $("loginEmailBtn");
 const signupEmailBtn = $("signupEmailBtn");
+const resetPasswordBtn = $("resetPasswordBtn");
 const signupEmailBtnPrimary = $("signupEmailBtnPrimary");
 const backToLoginBtn = $("backToLoginBtn");
 const signupExtras = $("signupExtras");
@@ -173,7 +174,7 @@ async function syncProfile(user){
   if (!username) return;
   await supabaseClient
     .from("profiles")
-    .upsert({ id: user.id, username, full_name: fullName }, { onConflict: "id" });
+    .upsert({ id: user.id, username, full_name: fullName, email: user.email || "" }, { onConflict: "id" });
 }
 
 async function checkAuth() {
@@ -210,15 +211,35 @@ async function startOAuth(provider){
   if (error) toast("Login fehlgeschlagen", error.message);
 }
 
+async function resolveLoginEmail(identifier){
+  const value = (identifier || "").trim();
+  if (!value) return "";
+  if (value.includes("@")) return value;
+  if (!supabaseClient) return "";
+
+  const { data, error } = await supabaseClient
+    .from("profiles")
+    .select("email")
+    .eq("username", value)
+    .maybeSingle();
+  if (error || !data?.email) return "";
+  return data.email;
+}
+
 async function emailAuth(mode){
   if (!supabaseClient) {
     toast("Login Fehler", "Supabase nicht geladen.");
     return;
   }
-  const email = (emailLogin?.value || "").trim();
+  const identifier = (emailLogin?.value || "").trim();
   const password = (passwordLogin?.value || "").trim();
-  if (!email || !password) {
-    toast("Fehlende Daten", "E-Mail und Passwort eingeben.");
+  if (!identifier || !password) {
+    toast("Fehlende Daten", "E-Mail/Username und Passwort eingeben.");
+    return;
+  }
+  const email = await resolveLoginEmail(identifier);
+  if (!email) {
+    toast("Login fehlgeschlagen", "E-Mail oder Username nicht gefunden.");
     return;
   }
 
@@ -254,8 +275,9 @@ async function emailAuth(mode){
     }
     if (data?.session) {
       window.location.href = "./index.html";
+    } else {
+      toast("Check deine E-Mail", "Falls die E-Mail schon existiert, bitte einloggen.");
     }
-    else toast("Bestaetigung", "Check deine E-Mail.");
     return;
   }
 
@@ -281,6 +303,21 @@ microsoftLoginBtn?.addEventListener("click", () => startOAuth("microsoft"));
 logoutTop?.addEventListener("click", logout);
 logoutSide?.addEventListener("click", logout);
 loginEmailBtn?.addEventListener("click", () => emailAuth("login"));
+resetPasswordBtn?.addEventListener("click", async () => {
+  if (!supabaseClient) {
+    toast("Fehler", "Supabase nicht geladen.");
+    return;
+  }
+  const email = (emailLogin?.value || "").trim();
+  if (!email) {
+    toast("E-Mail fehlt", "Bitte zuerst deine E-Mail eingeben.");
+    return;
+  }
+  const redirectTo = window.location.origin + "/login.html";
+  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo });
+  if (error) toast("Fehler", error.message);
+  else toast("E-Mail gesendet", "Check dein Postfach.");
+});
 
 let appInitialized = false;
 function initAppUI(){
@@ -462,6 +499,8 @@ const statQuests = $("statQuests");
 const xpLevel = $("xpLevel");
 const xpProgress = $("xpProgress");
 const xpBar = $("xpBar");
+const topXpBar = $("topXpBar");
+const topXpText = $("topXpText");
 
 const skillSearch = $("skillSearch");
 const skillSort = $("skillSort");
@@ -480,7 +519,6 @@ const openRewardsTop = $("openRewardsTop");
 const rewardsCarousel = $("rewardsCarousel");
 const rewardsModalHint = $("rewardsModalHint");
 const levelBadge = $("levelBadge");
-const levelBadgeTop = $("levelBadgeTop");
 const legalModal = $("legalModal");
 const closeLegal = $("closeLegal");
 const legalTitle = $("legalTitle");
@@ -516,7 +554,7 @@ function updateStats(){
   renderTodayPlan(skills, open);
 }
 function updateXP(skills){
-  if (!xpLevel && !xpProgress && !xpBar) return;
+  if (!xpLevel && !xpProgress && !xpBar && !topXpBar && !topXpText) return;
   const total = skills.reduce((sum, s) => sum + (Number(s.progress) || 0), 0);
   const level = Math.max(1, Math.floor(total / 100) + 1);
   const current = total % 100;
@@ -526,6 +564,8 @@ function updateXP(skills){
   if (levelBadgeTop) levelBadgeTop.textContent = String(level);
   if (xpProgress) xpProgress.textContent = `${current}/100 XP`;
   if (xpBar) xpBar.style.width = `${Math.min(100, Math.max(0, current))}%`;
+  if (topXpText) topXpText.textContent = `${current}/100`;
+  if (topXpBar) topXpBar.style.width = `${Math.min(100, Math.max(0, current))}%`;
 
   const prevLevel = Number(localStorage.getItem(LS.lastLevel) || "1");
   if (level > prevLevel) {

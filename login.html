@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="de">
 <head>
   <meta charset="utf-8" />
@@ -27,9 +27,18 @@
       <a href="./index.html">Home</a>
       <a href="./index.html#why">Warum</a>
       <a href="./index.html#pro">Pro</a>
-      <button class="icon-btn" id="themeToggle" type="button" aria-label="Dark Mode umschalten" title="Dark Mode">
-        <span class="icon-sun" aria-hidden="true">?</span>
-        <span class="icon-moon" aria-hidden="true">??</span>
+            <button class="icon-btn" id="themeToggle" type="button" aria-label="Dark Mode umschalten" title="Dark Mode">
+        <span class="icon-sun" aria-hidden="true">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/>
+            <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.5 4.5l2.1 2.1M17.4 17.4l2.1 2.1M4.5 19.5l2.1-2.1M17.4 6.6l2.1-2.1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="icon-moon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 14.5A8.5 8.5 0 1 1 9.5 3a7 7 0 0 0 11.5 11.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          </svg>
+        </span>
       </button>
     </nav>
   </header>
@@ -60,8 +69,8 @@
             </div>
 
             <label class="label">
-              E-Mail
-              <input class="input" id="emailLogin" type="email" placeholder="name@domain.com" />
+              E-Mail oder Username
+              <input class="input" id="emailLogin" type="text" placeholder="name@domain.com oder username" />
             </label>
             <label class="label">
               Passwort
@@ -71,6 +80,7 @@
             <div class="row" id="loginActions" style="justify-content:flex-start; margin-top:0;">
               <button class="btn primary" id="loginEmailBtn" type="button">Einloggen</button>
               <button class="btn" id="signupEmailBtn" type="button">Account erstellen</button>
+              <button class="btn ghost-btn" id="resetPasswordBtn" type="button">Passwort vergessen</button>
             </div>
             <div class="row hidden" id="signupActions" style="justify-content:flex-start; margin-top:0;">
               <button class="btn primary" id="signupEmailBtnPrimary" type="button">Account erstellen</button>
@@ -98,3 +108,5 @@
   <script src="./script.js"></script>
 </body>
 </html>
+
+
