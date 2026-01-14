@@ -400,7 +400,7 @@ body[data-theme="dark"] .card{ border: 1px solid rgba(255,255,255,.08); }
   display:grid;
   grid-template-columns: 260px minmax(0, 1fr);
   gap: 16px;
-  align-items: start;
+  align-items: stretch;
   min-height: calc(100vh - 72px);
   padding: 0 16px 18px 0;
   transition: grid-template-columns .2s ease;
@@ -530,7 +530,12 @@ body[data-theme="dark"] .sidebar{
 }
 .user-sub{ color: var(--muted); font-size: .9rem; }
 
-.app-main{ padding-bottom: 24px; }
+.app-main{
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 72px);
+  padding-bottom: 0;
+}
 .app-header{
   display:flex;
   align-items:flex-end;
@@ -894,7 +899,11 @@ body[data-theme="dark"] .select{ background: rgba(0,0,0,.22); }
 .form{ display:flex; flex-direction: column; gap: 12px; margin-top: 10px; }
 .row{ display:flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; margin-top: 12px; }
 
-.app-footer{ padding: 18px 0 10px 0; opacity: .9; }
+.app-footer{
+  margin-top: auto;
+  padding: 18px 0 24px 0;
+  opacity: .9;
+}
 
 /* Reveal for landing */
 .js .reveal{ opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
