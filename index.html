@@ -263,6 +263,15 @@
               </span>
               <span class="side-label">Tutorials</span>
             </button>
+            <button class="side-link" data-view="settings" type="button">
+              <span class="side-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z" fill="none" stroke="currentColor" stroke-width="2"/>
+                  <path d="M4.5 12a7.5 7.5 0 0 1 .1-1l-2-1.2 2-3.5 2.2.7a7.7 7.7 0 0 1 1.7-1l.3-2.3h4l.3 2.3a7.7 7.7 0 0 1 1.7 1l2.2-.7 2 3.5-2 1.2a7.5 7.5 0 0 1 0 2l2 1.2-2 3.5-2.2-.7a7.7 7.7 0 0 1-1.7 1l-.3 2.3h-4l-.3-2.3a7.7 7.7 0 0 1-1.7-1l-2.2.7-2-3.5 2-1.2a7.5 7.5 0 0 1-.1-1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                </svg>
+              </span>
+              <span class="side-label">Settings</span>
+            </button>
           </nav>
         </div>
 
@@ -462,6 +471,38 @@
             </div>
 
             <div class="grid" id="tutorialGrid"></div>
+          </div>
+        </section>
+
+        <!-- View: Settings -->
+        <section class="view" id="view-settings">
+          <div class="grid">
+            <div class="card col-6">
+              <h3>Profil</h3>
+              <p class="hint" style="margin-top:6px;">Dein Username wird in der Sidebar angezeigt.</p>
+              <div class="form-row">
+                <label class="label">
+                  Username
+                  <input class="input" id="settingsUsername" placeholder="username" />
+                </label>
+                <label class="label">
+                  Name
+                  <input class="input" id="settingsFullName" placeholder="Dein Name" />
+                </label>
+                <button class="btn primary" id="saveProfileBtn" type="button">Speichern</button>
+              </div>
+            </div>
+
+            <div class="card col-6">
+              <h3>Account</h3>
+              <p class="hint" style="margin-top:6px;">E-Mail ist an dein Konto gebunden.</p>
+              <div class="form-row">
+                <label class="label">
+                  E-Mail
+                  <input class="input" id="settingsEmail" type="email" placeholder="name@domain.com" disabled />
+                </label>
+              </div>
+            </div>
           </div>
         </section>
 

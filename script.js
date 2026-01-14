@@ -119,6 +119,10 @@ const logoutSide = $("logoutSide");
 const userNameLabel = $("userNameLabel");
 const userEmailLabel = $("userEmailLabel");
 const avatarInitials = $("avatarInitials");
+const settingsUsername = $("settingsUsername");
+const settingsFullName = $("settingsFullName");
+const settingsEmail = $("settingsEmail");
+const saveProfileBtn = $("saveProfileBtn");
 
 function getInitials(name, email){
   const base = (name || "").trim();
@@ -135,13 +139,16 @@ function displayUser(user){
   const meta = user.user_metadata || {};
   const email = user.email || "";
   const emailName = email ? email.split("@")[0] : "";
-  const name = meta.full_name || meta.name || emailName || email || "User";
-  if (userNameLabel) userNameLabel.textContent = name;
+  const display = meta.username || meta.full_name || meta.name || emailName || email || "User";
+  if (userNameLabel) userNameLabel.textContent = display;
   if (userEmailLabel) {
     userEmailLabel.textContent = email;
     userEmailLabel.title = email;
   }
-  if (avatarInitials) avatarInitials.textContent = getInitials(name, user.email);
+  if (avatarInitials) avatarInitials.textContent = getInitials(display, user.email);
+  if (settingsUsername) settingsUsername.value = meta.username || "";
+  if (settingsFullName) settingsFullName.value = meta.full_name || meta.name || "";
+  if (settingsEmail) settingsEmail.value = email;
 }
 
 async function checkAuth() {
@@ -296,6 +303,7 @@ const views = {
   dashboard: { el: $("view-dashboard"), title: "Dashboard", sub: "Dein Überblick. Starte mit einem Skill.", action: "Zu Skills" },
   skills: { el: $("view-skills"), title: "Skills", sub: "Skills & Quests verwalten – Progress durch Aufgaben.", action: "Neuen Skill" },
   tutorials: { el: $("view-tutorials"), title: "Tutorials", sub: "Suchen, filtern und als Quest speichern.", action: "Zu Skills" },
+  settings: { el: $("view-settings"), title: "Settings", sub: "Profil und Account verwalten.", action: "Profil speichern" },
 };
 
 async function setView(name, opts = { animate: true }){
@@ -353,6 +361,30 @@ primaryAction?.addEventListener("click", () => {
   if (current === "dashboard") setView("skills");
   else if (current === "skills") $("skillName")?.focus();
   else if (current === "tutorials") setView("skills");
+  else if (current === "settings") saveProfileBtn?.click();
+});
+
+saveProfileBtn?.addEventListener("click", async () => {
+  if (!supabaseClient) {
+    toast("Fehler", "Supabase nicht geladen.");
+    return;
+  }
+  const username = (settingsUsername?.value || "").trim();
+  const fullName = (settingsFullName?.value || "").trim();
+  if (!username) {
+    toast("Fehlender Username", "Bitte einen Username eingeben.");
+    return;
+  }
+  const { error } = await supabaseClient.auth.updateUser({
+    data: { username, full_name: fullName }
+  });
+  if (error) {
+    toast("Speichern fehlgeschlagen", error.message);
+    return;
+  }
+  toast("Gespeichert", "Profil aktualisiert.");
+  const { data } = await supabaseClient.auth.getUser();
+  if (data?.user) displayUser(data.user);
 });
 
 /* ========= Skills ========= */
@@ -1155,6 +1187,8 @@ async function boot(){
 }
 
 boot();
+
+
 
 
 
