@@ -602,7 +602,10 @@ const REWARDS = [
   { level: 5, title: "Streak Boost", category: "Streak", desc: "Streak zeigt dir 7-Tage-Serie." },
   { level: 6, title: "Milestone Frame", category: "Profil", desc: "Avatar-Rahmen fuer Meilensteine." },
   { level: 7, title: "Pro Highlight", category: "Pro", desc: "Skill-Karten mit Highlight." },
-  { level: 8, title: "Weekly Summary", category: "Insights", desc: "Kurzer Wochen-Rueckblick." }
+  { level: 8, title: "Weekly Summary", category: "Insights", desc: "Kurzer Wochen-Rueckblick." },
+  { level: 9, title: "Deep Focus Mode", category: "Focus", desc: "Ablenkungsarme Ansicht im Skill-Tab." },
+  { level: 10, title: "Gold Badge", category: "Badges", desc: "Goldenes Profil-Badge freigeschaltet." },
+  { level: 12, title: "Custom Accent", category: "Theme", desc: "Eigene Akzentfarbe fuer die UI." }
 ];
 
 function getRewardForLevel(level){
