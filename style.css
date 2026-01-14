@@ -398,34 +398,37 @@ body[data-theme="dark"] .card{ border: 1px solid rgba(255,255,255,.08); }
 /* App layout */
 .app{
   display:grid;
-  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-columns: 260px minmax(0, 1fr);
   gap: 16px;
   align-items: start;
   min-height: calc(100vh - 72px);
-  padding: 18px 16px;
+  padding: 0 16px 18px 0;
   transition: grid-template-columns .2s ease;
 }
 .app.sidebar-collapsed{
-  grid-template-columns: 88px minmax(0, 1fr);
+  grid-template-columns: 78px minmax(0, 1fr);
 }
 
 .sidebar{
   position: sticky;
-  top: 90px;
-  height: calc(100vh - 108px);
-  border-radius: 22px;
-  background: var(--card2);
-  border: 1px solid rgba(255,255,255,.35);
+  top: 72px;
+  height: calc(100vh - 72px);
+  border-radius: 0;
+  background: var(--card);
+  border: none;
+  border-right: 1px solid rgba(255,255,255,.45);
   box-shadow: var(--shadow2);
-  padding: 16px;
+  padding: 18px 12px;
   display:flex;
   flex-direction: column;
   justify-content: space-between;
   transition: padding .2s ease, border-radius .2s ease;
 }
-body[data-theme="dark"] .sidebar{ border: 1px solid rgba(255,255,255,.10); }
+body[data-theme="dark"] .sidebar{
+  border-right: 1px solid rgba(255,255,255,.10);
+}
 .app.sidebar-collapsed .sidebar{
-  padding: 14px 10px;
+  padding: 18px 8px;
 }
 
 .side-brand{
@@ -541,7 +544,7 @@ body[data-theme="dark"] .sidebar{ border: 1px solid rgba(255,255,255,.10); }
 
 @media (max-width: 980px){
   .app{ grid-template-columns: 1fr; }
-  .sidebar{ position: relative; top: 0; height: auto; }
+  .sidebar{ position: relative; top: 0; height: auto; border-right: none; border-radius: 18px; margin: 12px 12px 0 12px; }
 }
 
 /* Views + animations */
