@@ -151,6 +151,31 @@ function displayUser(user){
   if (settingsEmail) settingsEmail.value = email;
 }
 
+async function isUsernameAvailable(username){
+  if (!supabaseClient) return false;
+  const { data, error } = await supabaseClient
+    .from("profiles")
+    .select("id")
+    .eq("username", username)
+    .maybeSingle();
+  if (error) {
+    toast("Fehler", "Profiles Tabelle fehlt oder keine Berechtigung.");
+    return false;
+  }
+  return !data;
+}
+
+async function syncProfile(user){
+  if (!supabaseClient || !user) return;
+  const meta = user.user_metadata || {};
+  const username = (meta.username || "").trim();
+  const fullName = (meta.full_name || meta.name || "").trim();
+  if (!username) return;
+  await supabaseClient
+    .from("profiles")
+    .upsert({ id: user.id, username, full_name: fullName }, { onConflict: "id" });
+}
+
 async function checkAuth() {
   try {
     if (!supabaseClient) {
@@ -165,6 +190,7 @@ async function checkAuth() {
     const user = data.session.user;
     document.body.classList.add("authed");
     displayUser(user);
+    syncProfile(user);
     return user;
   } catch {
     document.body.classList.remove("authed");
@@ -197,14 +223,25 @@ async function emailAuth(mode){
   }
 
   if (mode === "signup") {
-    const meta = {
-      full_name: (fullName?.value || "").trim(),
-      username: (userName?.value || "").trim()
-    };
+    const username = (userName?.value || "").trim();
+    const fullNameValue = (fullName?.value || "").trim();
+    if (!username) {
+      toast("Fehlender Username", "Bitte einen Username eingeben.");
+      return;
+    }
+    if (!/^[a-zA-Z0-9._-]{3,20}$/.test(username)) {
+      toast("Ungueltiger Username", "3-20 Zeichen: a-z, 0-9, Punkt, Bindestrich, Unterstrich.");
+      return;
+    }
+    const available = await isUsernameAvailable(username);
+    if (!available) {
+      toast("Username vergeben", "Bitte einen anderen waehlen.");
+      return;
+    }
     const { data, error } = await supabaseClient.auth.signUp({
       email,
       password,
-      options: { data: meta }
+      options: { data: { username, full_name: fullNameValue } }
     });
     if (error) {
       toast("Signup fehlgeschlagen", error.message);
@@ -238,7 +275,6 @@ microsoftLoginBtn?.addEventListener("click", () => startOAuth("microsoft"));
 logoutTop?.addEventListener("click", logout);
 logoutSide?.addEventListener("click", logout);
 loginEmailBtn?.addEventListener("click", () => emailAuth("login"));
-signupEmailBtn?.addEventListener("click", () => emailAuth("signup"));
 
 let appInitialized = false;
 function initAppUI(){
@@ -261,6 +297,7 @@ supabaseClient?.auth.onAuthStateChange((_event, session) => {
   if (session?.user) {
     document.body.classList.add("authed");
     displayUser(session.user);
+    syncProfile(session.user);
     initAppUI();
   } else {
     document.body.classList.remove("authed");
@@ -370,21 +407,36 @@ saveProfileBtn?.addEventListener("click", async () => {
     return;
   }
   const username = (settingsUsername?.value || "").trim();
-  const fullName = (settingsFullName?.value || "").trim();
+  const fullNameValue = (settingsFullName?.value || "").trim();
   if (!username) {
     toast("Fehlender Username", "Bitte einen Username eingeben.");
     return;
   }
+  if (!/^[a-zA-Z0-9._-]{3,20}$/.test(username)) {
+    toast("Ungueltiger Username", "3-20 Zeichen: a-z, 0-9, Punkt, Bindestrich, Unterstrich.");
+    return;
+  }
+  const { data: userData } = await supabaseClient.auth.getUser();
+  if (!userData?.user) return;
+  const check = await supabaseClient
+    .from("profiles")
+    .select("id")
+    .eq("username", username)
+    .maybeSingle();
+  if (check.data && check.data.id !== userData.user.id) {
+    toast("Username vergeben", "Bitte einen anderen waehlen.");
+    return;
+  }
   const { error } = await supabaseClient.auth.updateUser({
-    data: { username, full_name: fullName }
+    data: { username, full_name: fullNameValue }
   });
   if (error) {
     toast("Speichern fehlgeschlagen", error.message);
     return;
   }
+  await syncProfile(userData.user);
   toast("Gespeichert", "Profil aktualisiert.");
-  const { data } = await supabaseClient.auth.getUser();
-  if (data?.user) displayUser(data.user);
+  displayUser(userData.user);
 });
 
 /* ========= Skills ========= */
