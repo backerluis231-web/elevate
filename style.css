@@ -45,6 +45,7 @@ body{
 body.modal-open{
   overflow: hidden;
 }
+.hidden{ display: none !important; }
 
 /* Background motion */
 .bg{ position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
@@ -133,7 +134,12 @@ body[data-theme="dark"] .icon-moon{ display:none; }
   font-weight: 850;
   cursor:pointer;
   box-shadow: 0 14px 28px rgba(79,70,229,.22);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
+.pill:visited{ color: white; }
 .ghost{
   border: 1px solid var(--stroke);
   background: transparent;
@@ -264,6 +270,50 @@ main{ padding-top: 72px; }
 /* Hero extras */
 .hero-kpis-wrap{
   margin-top: 32px;
+}
+.login-card{
+  max-width: 560px;
+  margin: 0 auto;
+}
+.hero-blurb{
+  margin: 0 auto;
+  max-width: 760px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: rgba(255,255,255,.55);
+  border: 1px solid rgba(255,255,255,.45);
+  box-shadow: var(--shadow2);
+}
+body[data-theme="dark"] .hero-blurb{
+  background: rgba(17,24,39,.45);
+  border-color: rgba(255,255,255,.10);
+}
+.hero-blurb-title{
+  font-weight: 900;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  font-size: .78rem;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.hero-blurb p{
+  color: var(--muted);
+  line-height: 1.55;
+}
+.hero-blurb-list{
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.hero-blurb-list span{
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(79,70,229,.12);
+  color: var(--accent);
+  font-weight: 800;
+  font-size: .85rem;
+  border: 1px solid rgba(79,70,229,.16);
 }
 .hero-kpis{
   display:grid;

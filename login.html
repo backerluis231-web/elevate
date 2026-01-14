@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Elevate - Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+  <div class="bg" aria-hidden="true">
+    <div class="blob one"></div>
+    <div class="blob two"></div>
+    <div class="blob three"></div>
+  </div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-dot"></span>
+      <span>Elevate</span>
+    </div>
+
+    <nav class="topnav">
+      <a href="./index.html">Home</a>
+      <a href="./index.html#why">Warum</a>
+      <a href="./index.html#pro">Pro</a>
+      <button class="icon-btn" id="themeToggle" type="button" aria-label="Dark Mode umschalten" title="Dark Mode">
+        <span class="icon-sun" aria-hidden="true">?</span>
+        <span class="icon-moon" aria-hidden="true">??</span>
+      </button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap hero-simple reveal">
+        <div class="hero-eyebrow">Login</div>
+        <h1 class="hero-title">
+          <span class="hero-line">Willkommen</span>
+          <span class="hero-line hero-title-accent">zurueck</span>
+        </h1>
+        <p class="sub">Melde dich mit E-Mail/Passwort oder OAuth an.</p>
+      </div>
+
+      <div class="wrap hero-kpis-wrap reveal">
+        <div class="card login-card">
+          <div class="form">
+            <div id="signupExtras" class="hidden">
+              <label class="label">
+                Name
+                <input class="input" id="fullName" placeholder="Dein Name" />
+              </label>
+              <label class="label">
+                Username
+                <input class="input" id="userName" placeholder="username" />
+              </label>
+            </div>
+
+            <label class="label">
+              E-Mail
+              <input class="input" id="emailLogin" type="email" placeholder="name@domain.com" />
+            </label>
+            <label class="label">
+              Passwort
+              <input class="input" id="passwordLogin" type="password" placeholder="********" />
+            </label>
+
+            <div class="row" id="loginActions" style="justify-content:flex-start; margin-top:0;">
+              <button class="btn primary" id="loginEmailBtn" type="button">Einloggen</button>
+              <button class="btn" id="signupEmailBtn" type="button">Account erstellen</button>
+            </div>
+            <div class="row hidden" id="signupActions" style="justify-content:flex-start; margin-top:0;">
+              <button class="btn primary" id="signupEmailBtnPrimary" type="button">Account erstellen</button>
+              <button class="btn" id="backToLoginBtn" type="button">Schon Account?</button>
+            </div>
+
+            <div class="divider" id="oauthDivider"></div>
+            <div id="oauthBlock">
+              <p class="hint" style="margin-top:0;">Oder mit OAuth:</p>
+              <button class="btn primary" style="width:100%; justify-content:center;" id="googleLoginBtn" type="button">
+                Mit Google einloggen
+              </button>
+              <button class="btn" style="width:100%; justify-content:center;" id="microsoftLoginBtn" type="button">
+                Mit Microsoft einloggen
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toasts" id="toasts" aria-live="polite" aria-atomic="true"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./script.js"></script>
+</body>
+</html>

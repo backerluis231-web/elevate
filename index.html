@@ -30,7 +30,7 @@
       <a href="#hero" data-auth="public">Home</a>
       <a href="#why" data-auth="public">Warum</a>
       <a href="#pro" data-auth="public">Pro</a>
-      <button class="pill" id="openLogin" data-auth="public" type="button">Loslegen</button>
+      <a class="pill" href="./login.html" data-auth="public">Loslegen</a>
 
       <!-- Private -->
       <button class="icon-btn" id="themeToggle" type="button" aria-label="Dark Mode umschalten" title="Dark Mode">
@@ -57,24 +57,20 @@
         </h1>
 
         <div class="cta-row">
-          <button class="btn primary" id="openLogin2" type="button">Loslegen</button>
+          <a class="btn primary" href="./login.html">Loslegen</a>
           <a class="btn" href="#why">Warum Elevate?</a>
         </div>
 
       </div>
 
-      <div class="wrap hero-kpis-wrap reveal">
-        <div class="hero-kpis">
-          <div class="kpi">
-            <div class="kpi-top">UI</div>
-            <div class="kpi-big">Clean</div>
-            <div class="kpi-sub">nicht überladen</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi-top">System</div>
-            <div class="kpi-big">Quests</div>
-            <div class="kpi-sub">Progress durch Tasks</div>
-          </div>
+                  <div class="wrap hero-kpis-wrap reveal">
+        <div class="hero-blurb">
+          <div class="hero-blurb-title">Elevate in 10 Sekunden</div>
+          <p>
+            Elevate ist dein Skill-Tracker fuer fokussiertes Lernen: Skills planen,
+            Fortschritt in Prozent sehen und kleine Quests erledigen - so bleibt
+            Lernen messbar und motivierend.
+          </p>
         </div>
       </div>
     </section>
@@ -91,7 +87,7 @@
           </div>
           <div class="card col-4 reveal">
             <h3>Quests</h3>
-            <p>Aufgaben mit Punkten. Erledigen → Progress steigt automatisch.</p>
+            <p>Aufgaben mit Punkten. Erledigen -> Progress steigt automatisch.</p>
           </div>
           <div class="card col-4 reveal">
             <h3>Tutorials</h3>
@@ -131,7 +127,7 @@
         </div>
 
         <div class="cta-center reveal">
-          <button class="btn primary" id="openLogin3" type="button">Jetzt starten</button>
+          <a class="btn primary" href="./login.html">Jetzt starten</a>
         </div>
       </div>
     </section>
@@ -155,7 +151,7 @@
               <li>Quests (Basic)</li>
               <li>Tutorial Filter</li>
             </ul>
-            <button class="btn" type="button" id="openLogin4">Mit Free starten</button>
+            <a class="btn" href="./login.html">Mit Free starten</a>
           </div>
 
           <div class="card col-6 reveal plan pro">
@@ -171,7 +167,7 @@
               <li>Level / XP (später)</li>
               <li>Cloud Sync (später)</li>
             </ul>
-            <button class="btn primary" type="button" id="openLogin5">Pro testen</button>
+            <a class="btn primary" href="./login.html">Pro testen</a>
           </div>
         </div>
       </div>
@@ -478,47 +474,6 @@
     </div>
   </main>
 
-  <!-- LOGIN MODAL -->
-  <div class="modal-backdrop" id="modal">
-    <div class="modal">
-      <div class="modal-head">
-        <div class="modal-title">Login</div>
-        <button class="icon-btn" id="closeModal" type="button" aria-label="Schliessen">x</button>
-      </div>
-
-      <p class="hint">Login mit E-Mail/Passwort oder OAuth.</p>
-
-      <div class="form">
-        <label class="label">
-          E-Mail
-          <input class="input" id="emailLogin" type="email" placeholder="name@domain.com" />
-        </label>
-        <label class="label">
-          Passwort
-          <input class="input" id="passwordLogin" type="password" placeholder="********" />
-        </label>
-        <div class="row" style="justify-content:flex-start; margin-top:0;">
-          <button class="btn primary" id="loginEmailBtn" type="button">Einloggen</button>
-          <button class="btn" id="signupEmailBtn" type="button">Account erstellen</button>
-        </div>
-
-        <div class="divider"></div>
-        <p class="hint" style="margin-top:0;">Oder mit OAuth:</p>
-        <button class="btn primary" style="width:100%; justify-content:center;" id="googleLoginBtn" type="button">
-          Mit Google einloggen
-        </button>
-
-        <button class="btn" style="width:100%; justify-content:center;" id="microsoftLoginBtn" type="button">
-          Mit Microsoft einloggen
-        </button>
-      </div>
-
-      <div class="row">
-        <button class="btn" id="cancelBtn" type="button">Abbrechen</button>
-      </div>
-    </div>
-  </div>
-
   <div class="modal-backdrop" id="rewardsModal">
     <div class="modal rewards-modal">
       <div class="modal-head">
@@ -549,4 +504,11 @@
   <script src="./script.js"></script>
 </body>
 </html>
+
+
+
+
+
+
+
 

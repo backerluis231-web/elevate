@@ -78,42 +78,32 @@ $("themeToggle")?.addEventListener("click", () => {
   applyTheme(isDark ? "light" : "dark");
 });
 
-/* ========= Modal open/close ========= */
-const modal = $("modal");
-
-const openLogin = $("openLogin");
-const openLogin2 = $("openLogin2");
-const openLogin3 = $("openLogin3");
-const openLogin4 = $("openLogin4");
-const openLogin5 = $("openLogin5");
-
-const closeModal = $("closeModal");
-const cancelBtn = $("cancelBtn");
+/* ========= Login (page section) ========= */
 const emailLogin = $("emailLogin");
 const passwordLogin = $("passwordLogin");
 const loginEmailBtn = $("loginEmailBtn");
 const signupEmailBtn = $("signupEmailBtn");
+const signupEmailBtnPrimary = $("signupEmailBtnPrimary");
+const backToLoginBtn = $("backToLoginBtn");
+const signupExtras = $("signupExtras");
+const loginActions = $("loginActions");
+const signupActions = $("signupActions");
+const oauthBlock = $("oauthBlock");
+const oauthDivider = $("oauthDivider");
+const fullName = $("fullName");
+const userName = $("userName");
 
-function openModal(){
-  if (!modal) return;
-  modal.style.display = "flex";
-  document.body.classList.add("modal-open");
+function setSignupMode(active){
+  if (!signupExtras || !loginActions || !signupActions) return;
+  signupExtras.classList.toggle("hidden", !active);
+  loginActions.classList.toggle("hidden", active);
+  signupActions.classList.toggle("hidden", !active);
+  oauthBlock?.classList.toggle("hidden", active);
+  oauthDivider?.classList.toggle("hidden", active);
 }
-function hideModal(){
-  if (!modal) return;
-  modal.style.display = "none";
-  document.body.classList.remove("modal-open");
-}
-
-openLogin?.addEventListener("click", openModal);
-openLogin2?.addEventListener("click", openModal);
-openLogin3?.addEventListener("click", openModal);
-openLogin4?.addEventListener("click", openModal);
-openLogin5?.addEventListener("click", openModal);
-
-closeModal?.addEventListener("click", hideModal);
-cancelBtn?.addEventListener("click", hideModal);
-modal?.addEventListener("click", (e) => { if (e.target === modal) hideModal(); });
+signupEmailBtn?.addEventListener("click", () => setSignupMode(true));
+backToLoginBtn?.addEventListener("click", () => setSignupMode(false));
+signupEmailBtnPrimary?.addEventListener("click", () => emailAuth("signup"));
 
 /* ========= Supabase Auth ========= */
 const SUPABASE_URL = "https://rippjxcshbgynurtttar.supabase.co";
@@ -200,12 +190,20 @@ async function emailAuth(mode){
   }
 
   if (mode === "signup") {
-    const { data, error } = await supabaseClient.auth.signUp({ email, password });
+    const meta = {
+      full_name: (fullName?.value || "").trim(),
+      username: (userName?.value || "").trim()
+    };
+    const { data, error } = await supabaseClient.auth.signUp({
+      email,
+      password,
+      options: { data: meta }
+    });
     if (error) {
       toast("Signup fehlgeschlagen", error.message);
       return;
     }
-    hideModal();
+    document.getElementById("appShell")?.scrollIntoView({ behavior: "smooth" });
     if (data?.session) toast("Erfolgreich", "Account erstellt.");
     else toast("Bestaetigung", "Check deine E-Mail.");
     return;
@@ -213,7 +211,7 @@ async function emailAuth(mode){
 
   const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
   if (error) toast("Login fehlgeschlagen", error.message);
-  else hideModal();
+  else document.getElementById("appShell")?.scrollIntoView({ behavior: "smooth" });
 }
 
 async function logout(){
