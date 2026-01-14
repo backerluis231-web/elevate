@@ -97,10 +97,12 @@ const signupEmailBtn = $("signupEmailBtn");
 function openModal(){
   if (!modal) return;
   modal.style.display = "flex";
+  document.body.classList.add("modal-open");
 }
 function hideModal(){
   if (!modal) return;
   modal.style.display = "none";
+  document.body.classList.remove("modal-open");
 }
 
 openLogin?.addEventListener("click", openModal);
@@ -388,6 +390,10 @@ const rewardsCarousel = $("rewardsCarousel");
 const rewardsModalHint = $("rewardsModalHint");
 const levelBadge = $("levelBadge");
 const levelBadgeTop = $("levelBadgeTop");
+const legalModal = $("legalModal");
+const closeLegal = $("closeLegal");
+const legalTitle = $("legalTitle");
+const legalBody = $("legalBody");
 
 const recoChips = $("recoChips");
 const RECOMMENDED = ["Python", "JavaScript", "Web Design", "UI/UX", "Fitness", "Englisch", "Mathe", "Produktivität"];
@@ -521,10 +527,12 @@ function renderRewardsCarousel(level){
 function openRewardsModal(){
   if (!rewardsModal) return;
   rewardsModal.style.display = "flex";
+  document.body.classList.add("modal-open");
 }
 function closeRewardsModal(){
   if (!rewardsModal) return;
   rewardsModal.style.display = "none";
+  document.body.classList.remove("modal-open");
 }
 
 openRewards?.addEventListener("click", openRewardsModal);
@@ -532,6 +540,157 @@ openRewardsTop?.addEventListener("click", openRewardsModal);
 closeRewards?.addEventListener("click", closeRewardsModal);
 rewardsModal?.addEventListener("click", (e) => {
   if (e.target === rewardsModal) closeRewardsModal();
+});
+
+const LEGAL_CONTENT = {
+  datenschutz: {
+    title: "Datenschutzerklaerung (Schweiz)",
+    body: `
+      <h4>1. Grundsatz</h4>
+      <p>Der Schutz Ihrer Personendaten ist uns ein wichtiges Anliegen. Diese Datenschutzerklaerung informiert ueber die Bearbeitung von Personendaten im Zusammenhang mit dieser Website und den damit verbundenen Dienstleistungen. Wir bearbeiten Personendaten im Einklang mit dem Schweizer Datenschutzgesetz (DSG) sowie, soweit anwendbar, der DSGVO.</p>
+      <h4>2. Verantwortlicher</h4>
+      <p>Luis Backer, 6033 Buchrain, Schweiz<br>E-Mail: Backerluis231@gmail.com</p>
+      <h4>3. Bearbeitete Personendaten</h4>
+      <p><strong>3.1 Bei Registrierung/Login</strong><br>E-Mail-Adresse, Login-Status, Zeitpunkt der Registrierung/Anmeldung.</p>
+      <p><strong>3.2 App-Daten</strong><br>Skills, Quests, Fortschritt (LocalStorage im Browser).</p>
+      <p><strong>3.3 Technische Daten (automatisch)</strong><br>IP-Adresse (soweit technisch erforderlich), Browsertyp, Betriebssystem, Datum/Uhrzeit des Zugriffs, Referrer-URL.</p>
+      <h4>4. Zweck der Datenbearbeitung</h4>
+      <p>Authentifizierung, Bereitstellung der App-Funktionen, Anzeige des Nutzerkontos, Sicherheit und Stabilitaet des Betriebs, Verbesserung der Nutzererfahrung.</p>
+      <h4>5. Rechtsgrundlagen</h4>
+      <p>Einwilligung (sofern erforderlich), Vertragserfuellung (Bereitstellung der App), berechtigte Interessen (Betrieb und Sicherheit), rechtliche Verpflichtungen.</p>
+      <h4>6. Cookies</h4>
+      <p>Es werden keine Tracking-Cookies eingesetzt. Technisch notwendige Daten koennen zur Bereitstellung der Funktionen verwendet werden. Einstellungen wie Theme koennen lokal gespeichert werden.</p>
+      <h4>7. Datenweitergabe</h4>
+      <p>Wir geben Personendaten nur weiter, wenn dies fuer den Betrieb erforderlich ist oder eine rechtliche Grundlage besteht. Dienstleister: Supabase (Authentifizierung), Vercel (Hosting). Wir verkaufen keine Personendaten.</p>
+      <h4>8. Datenuebermittlung ins Ausland</h4>
+      <p>Je nach Dienstleister koennen Daten in Laender ausserhalb der Schweiz uebermittelt werden. Es werden geeignete Garantien eingesetzt (z.B. Standardvertragsklauseln).</p>
+      <h4>9. Datensicherheit</h4>
+      <p>Angemessene technische und organisatorische Massnahmen (TLS/SSL, Zugriffskontrolle, Sicherheitsupdates).</p>
+      <h4>10. Aufbewahrungsdauer</h4>
+      <p>Kontodaten bis zur Loeschung des Kontos. Lokale Daten bleiben im Browser, bis sie geloescht werden.</p>
+      <h4>11. Ihre Rechte</h4>
+      <p>Auskunft, Berichtigung, Loeschung, Widerspruch, Datenherausgabe. Kontakt: Backerluis231@gmail.com</p>
+      <h4>12. Beschwerderecht</h4>
+      <p>Beschwerde bei der zustaendigen Behoerde (EDOEB): www.edoeb.admin.ch</p>
+      <h4>13. Aenderungen</h4>
+      <p>Wir koennen diese Datenschutzerklaerung anpassen. Die aktuelle Version ist hier abrufbar.</p>
+    `
+  },
+  agb: {
+    title: "AGB (Schweiz) – Demo",
+    body: `
+      <h4>1. Geltungsbereich</h4>
+      <p>Diese Allgemeinen Geschaeftsbedingungen (AGB) gelten fuer alle Dienstleistungen, die ueber diese Website angeboten werden. Mit der Nutzung der Dienste erklaeren Sie sich mit diesen AGB einverstanden. Abweichende Bedingungen werden nicht anerkannt, ausser wir stimmen schriftlich zu.</p>
+      <p>Die AGB gelten fuer kostenlose Nutzung sowie fuer kostenpflichtige Abonnements. Mit Registrierung oder Nutzung bestaetigen Sie, dass Sie diese Bedingungen gelesen und verstanden haben.</p>
+
+      <h4>2. Vertragspartner</h4>
+      <p>Vertragspartner ist: Luis Backer, 6033 Buchrain, Schweiz. E-Mail: Backerluis231@gmail.com (nachfolgend "Anbieter").</p>
+
+      <h4>3. Leistungsbeschreibung</h4>
+      <p>Elevate ist ein Skill-Tracker. Der Service umfasst je nach Funktionsumfang:</p>
+      <p><strong>3.1 Basisfunktionen</strong><br>Skills verwalten, Fortschritt setzen, Quests erstellen und abschliessen, Tutorials speichern.</p>
+      <p><strong>3.2 Gamification</strong><br>Level/XP, Badges und Belohnungen, Fortschrittsanzeigen.</p>
+      <p><strong>3.3 Erweiterte Funktionen (Pro)</strong><br>Erweiterte Statistikfunktionen, zusaetzliche Quests, erweiterte Personalisierung (Platzhalter).</p>
+      <p><strong>3.4 Wichtiger Hinweis</strong><br>Die Ergebnisse dienen als Motivation und Orientierung und ersetzen keine professionelle Beratung.</p>
+
+      <h4>4. Vertragsschluss und Registrierung</h4>
+      <p>Der Vertrag kommt durch Registrierung und Zustimmung zu diesen AGB zustande. Bei kostenpflichtigen Abonnements erfolgt der Vertragsschluss mit erfolgreicher Zahlung.</p>
+      <p>Sie sind verpflichtet, korrekte Angaben zu machen und Ihre Zugangsdaten vertraulich zu behandeln.</p>
+
+      <h4>5. Preise und Zahlungsbedingungen</h4>
+      <p>Es gibt Free- und Pro-Nutzung. Preise und Leistungsumfang werden auf der Website angezeigt. Zahlungen erfolgen im Voraus ueber einen externen Zahlungsanbieter (Platzhalter).</p>
+      <p>Preisänderungen werden rechtzeitig bekannt gegeben und gelten ab der naechsten Abrechnungsperiode.</p>
+
+      <h4>6. Vertragslaufzeit und Kuendigung</h4>
+      <p>Pro-Abonnements laufen monatlich und verlaengern sich automatisch, sofern nicht vor Ablauf gekuendigt wird. Eine Kuendigung ist zum Ende der Abrechnungsperiode moeglich.</p>
+      <p>Der Anbieter kann den Vertrag aus wichtigem Grund fristlos kuendigen (z.B. Missbrauch, Zahlungsverzug).</p>
+
+      <h4>7. Widerrufsrecht (falls anwendbar)</h4>
+      <p>Sofern rechtlich erforderlich, gilt ein 14-taegiges Widerrufsrecht. Zur Ausuebung kontaktieren Sie: Backerluis231@gmail.com.</p>
+      <p>Das Widerrufsrecht kann vorzeitig erloeschen, wenn Sie der Ausfuehrung vor Ablauf der Frist zustimmen.</p>
+
+      <h4>8. Nutzungsrechte und Pflichten</h4>
+      <p>Die Nutzung ist fuer private Zwecke gestattet. Verboten sind Missbrauch, automatisierte Zugriffe, Weitergabe von Zugangsdaten sowie rechtswidrige Inhalte.</p>
+      <p>Sie duerfen Ihre eigenen Inhalte nutzen. Rechte Dritter sind zu respektieren.</p>
+
+      <h4>9. Geistiges Eigentum</h4>
+      <p>Alle Rechte an Design, Code und Inhalten verbleiben beim Anbieter. Die Nutzung gewaehrt keine Eigentumsrechte.</p>
+
+      <h4>10. Datenschutz</h4>
+      <p>Die Verarbeitung personenbezogener Daten erfolgt gemaess der Datenschutzerklaerung. Mit Nutzung der Dienste stimmen Sie dieser zu.</p>
+
+      <h4>11. Haftungsausschluss</h4>
+      <p>Der Anbieter haftet nicht fuer indirekte Schaeden, entgangenen Gewinn oder Folgeschaeden, soweit gesetzlich zulaessig.</p>
+      <p>Bei nicht ausschliessbarer Haftung ist diese auf die in den letzten 12 Monaten bezahlten Betraege begrenzt (max. CHF 100).</p>
+
+      <h4>12. Verfuegbarkeit und Gewaehrleistung</h4>
+      <p>Es wird keine durchgehende Verfuegbarkeit garantiert. Wartungen und Stoerungen sind moeglich. Ein Anspruch auf Entschaedigung besteht nicht.</p>
+
+      <h4>13. Aenderungen des Services und der AGB</h4>
+      <p>Der Anbieter kann den Service und diese AGB anpassen. Wesentliche Aenderungen werden angemessen mitgeteilt.</p>
+
+      <h4>14. Salvatorische Klausel</h4>
+      <p>Unwirksame Bestimmungen beruehren die Gueltigkeit der uebrigen Bestimmungen nicht.</p>
+
+      <h4>15. Anwendbares Recht und Gerichtsstand</h4>
+      <p>Es gilt schweizerisches Recht. Gerichtsstand ist, soweit zulaessig, der Wohnsitz des Anbieters.</p>
+
+      <h4>16. Kontakt</h4>
+      <p>Fragen zu diesen AGB: Backerluis231@gmail.com</p>
+    `
+  },
+  impressum: {
+    title: "Impressum (Schweiz)",
+    body: `
+      <h4>Kontaktadresse</h4>
+      <p>Luis Backer<br>6033 Buchrain<br>Schweiz</p>
+      <p>E-Mail: Backerluis231@gmail.com</p>
+      <h4>Rechtsform</h4>
+      <p>Einzelunternehmen</p>
+      <h4>Vertretungsberechtigte Person</h4>
+      <p>Luis Backer</p>
+      <h4>Mehrwertsteuernummer</h4>
+      <p>Nicht MWST-pflichtig (Umsatz unter CHF 100'000)</p>
+      <h4>Angebotene Dienste</h4>
+      <p>Elevate bietet folgende Dienste an:</p>
+      <p>Skill-Tracking mit Fortschritt und Quests<br>Gamification-System mit Levels und Belohnungen<br>Tutorial-Verwaltung und Speicherung<br>Optionale Pro-Funktionen (Platzhalter)</p>
+      <h4>Haftungsausschluss</h4>
+      <p>Der Autor uebernimmt keine Gewaehr fuer die Richtigkeit, Genauigkeit, Aktualitaet, Zuverlaessigkeit und Vollstaendigkeit der Informationen.</p>
+      <p>Haftungsansprueche gegen den Autor wegen Schaeden materieller oder immaterieller Art, die aus dem Zugriff oder der Nutzung bzw. Nichtnutzung der veroeffentlichten Informationen, durch Missbrauch der Verbindung oder durch technische Stoerungen entstanden sind, werden ausgeschlossen.</p>
+      <p>Alle Angebote sind freibleibend. Der Autor behaelt es sich vor, Teile der Seiten oder das gesamte Angebot ohne Ankuendigung zu veraendern, zu ergaenzen, zu loeschen oder die Veroeffentlichung zeitweise oder endgueltig einzustellen.</p>
+      <h4>Haftungsausschluss fuer Links</h4>
+      <p>Verweise und Links auf Websites Dritter liegen ausserhalb unseres Verantwortungsbereichs. Es wird jegliche Verantwortung fuer solche Websites abgelehnt. Der Zugriff und die Nutzung erfolgen auf eigene Gefahr.</p>
+      <h4>Urheberrechte</h4>
+      <p>Die Urheber- und alle anderen Rechte an Inhalten, Bildern, Fotos oder anderen Dateien auf dieser Website gehoeren ausschliesslich dem Betreiber oder den speziell genannten Rechteinhabern.</p>
+      <p>Fuer die Reproduktion jeglicher Elemente ist die schriftliche Zustimmung des Urheberrechtstraegers im Voraus einzuholen.</p>
+      <h4>Anwendbares Recht und Gerichtsstand</h4>
+      <p>Diese Website sowie deren Inhalte unterliegen dem Schweizer Recht. Ausschliesslicher Gerichtsstand ist Buchrain, Schweiz, soweit gesetzlich zulaessig.</p>
+      <p><strong>Stand:</strong> Januar 2026</p>
+    `
+  }
+};
+
+function openLegalModal(key){
+  if (!legalModal || !legalTitle || !legalBody) return;
+  const data = LEGAL_CONTENT[key];
+  if (!data) return;
+  legalTitle.textContent = data.title;
+  legalBody.innerHTML = data.body;
+  legalModal.style.display = "flex";
+  document.body.classList.add("modal-open");
+}
+function closeLegalModal(){
+  if (!legalModal) return;
+  legalModal.style.display = "none";
+  document.body.classList.remove("modal-open");
+}
+
+document.querySelectorAll("[data-legal]").forEach(btn => {
+  btn.addEventListener("click", () => openLegalModal(btn.getAttribute("data-legal")));
+});
+closeLegal?.addEventListener("click", closeLegalModal);
+legalModal?.addEventListener("click", (e) => {
+  if (e.target === legalModal) closeLegalModal();
 });
 function renderTodayPlan(skills, openQuests){
   if (!todayPlanList) return;

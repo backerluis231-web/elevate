@@ -42,6 +42,9 @@ body{
   overflow-x: hidden;
   min-height: 100vh;
 }
+body.modal-open{
+  overflow: hidden;
+}
 
 /* Background motion */
 .bg{ position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
@@ -360,14 +363,20 @@ body[data-theme="dark"] .card{ border: 1px solid rgba(255,255,255,.08); }
   gap: 10px;
   justify-content:flex-end;
 }
-.footer-links a{
+.footer-links a,
+.footer-links .link-btn{
   text-decoration:none;
   color: var(--accent);
   font-weight: 800;
   padding: 8px 10px;
   border-radius: 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font: inherit;
 }
-.footer-links a:hover{ background: rgba(79,70,229,.10); }
+.footer-links a:hover,
+.footer-links .link-btn:hover{ background: rgba(79,70,229,.10); }
 
 /* Pricing */
 .plan-top{
@@ -782,6 +791,17 @@ body[data-theme="dark"] .select{ background: rgba(0,0,0,.22); }
 #view-skills .quest-controls{
   justify-content: flex-start;
 }
+#view-skills .skill-controls{
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+#view-skills .skill-controls .control-group{
+  display:flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items:center;
+}
 #view-tutorials .tutorial-controls{
   flex-direction: column;
   align-items: stretch;
@@ -983,6 +1003,29 @@ body[data-theme="dark"] .select{ background: rgba(0,0,0,.22); }
   box-shadow: var(--shadow);
   padding: 16px;
   backdrop-filter: blur(12px);
+}
+.modal#legalModal,
+#legalModal .modal{
+  width: min(820px, 100%);
+}
+#legalModal .modal{
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+}
+#legalModal h4{
+  margin: 14px 0 6px 0;
+  font-weight: 900;
+  font-size: 1.02rem;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+#legalModal p{
+  margin: 0 0 10px 0;
+  line-height: 1.55;
+  color: var(--muted);
+}
+#legalModal p strong{
+  color: var(--text);
 }
 .rewards-modal{
   width: min(900px, 100%);

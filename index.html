@@ -203,7 +203,6 @@
       </div>
     </section>
 
-
     <section class="section footer" data-auth="public">
       <div class="wrap">
         <div class="footer-inner">
@@ -222,6 +221,9 @@
             <a href="#why">Warum</a>
             <a href="#pro">Pro</a>
             <a href="#faq">FAQ</a>
+            <button class="link-btn" type="button" data-legal="datenschutz">Datenschutz</button>
+            <button class="link-btn" type="button" data-legal="agb">AGB</button>
+            <button class="link-btn" type="button" data-legal="impressum">Impressum</button>
           </div>
         </div>
       </div>
@@ -410,19 +412,23 @@
               <div class="card-head">
                 <h3>Deine Liste</h3>
                 <div class="skill-controls">
-                  <input class="input small" id="skillSearch" placeholder="Suchen..." />
-                  <select class="select" id="skillSort" title="Sortieren">
-                    <option value="name">Name</option>
-                    <option value="progress">Progress</option>
-                  </select>
-                  <select class="select" id="skillFilter" title="Filtern">
-                    <option value="all">Alle</option>
-                    <option value="low">0-39%</option>
-                    <option value="mid">40-69%</option>
-                    <option value="high">70-100%</option>
-                  </select>
-                  <button class="mini-btn" id="skillClearBtn" type="button">Suche leeren</button>
-                  <button class="mini-btn" id="skillResetBtn" type="button">Filter reset</button>
+                  <div class="control-group">
+                    <input class="input small" id="skillSearch" placeholder="Suchen..." />
+                    <button class="mini-btn" id="skillClearBtn" type="button">Suche leeren</button>
+                  </div>
+                  <div class="control-group">
+                    <select class="select" id="skillSort" title="Sortieren">
+                      <option value="name">Name</option>
+                      <option value="progress">Progress</option>
+                    </select>
+                    <select class="select" id="skillFilter" title="Filtern">
+                      <option value="all">Alle</option>
+                      <option value="low">0-39%</option>
+                      <option value="mid">40-69%</option>
+                      <option value="high">70-100%</option>
+                    </select>
+                    <button class="mini-btn" id="skillResetBtn" type="button">Filter reset</button>
+                  </div>
                 </div>
               </div>
 
@@ -524,6 +530,18 @@
     </div>
   </div>
 
+  <div class="modal-backdrop" id="legalModal">
+    <div class="modal">
+      <div class="modal-head">
+        <div class="modal-title" id="legalTitle">Rechtliches</div>
+        <button class="icon-btn" id="closeLegal" type="button" aria-label="Schliessen">x</button>
+      </div>
+      <div id="legalBody">
+        <p class="hint">Demo-Text. Bitte spaeter mit echten Angaben ersetzen.</p>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Container -->
   <div class="toasts" id="toasts" aria-live="polite" aria-atomic="true"></div>
 
@@ -531,3 +549,4 @@
   <script src="./script.js"></script>
 </body>
 </html>
+
