@@ -440,6 +440,7 @@ document.querySelectorAll(".side-link").forEach(btn => {
 });
 
 function openMobileMenu(){
+  if (window.innerWidth > 720) return;
   document.body.classList.add("mobile-menu-open");
 }
 function closeMobileMenu(){

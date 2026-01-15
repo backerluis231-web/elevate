@@ -1336,6 +1336,10 @@ h1, h2, h3, .title, .app-title, .brand, .plan-name, .kpi-big, .tname{ font-famil
 body.mobile-menu-open .mobile-menu{
   display: flex;
 }
+@media (min-width: 721px){
+  .mobile-menu{ display: none !important; }
+  .mobile-menu-btn{ display: none !important; }
+}
 .reward-card-tag{
   margin-top: 8px;
   display: inline-flex;
