@@ -1304,12 +1304,14 @@ h1, h2, h3, .title, .app-title, .brand, .plan-name, .kpi-big, .tname{ font-famil
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,.45);
-  display: none !important;
+  display: flex;
   align-items: flex-start;
   justify-content: flex-end;
   z-index: 2100;
   opacity: 0;
-  transition: opacity .2s ease;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity .2s ease, visibility .2s ease;
 }
 .mobile-menu-panel{
   width: min(320px, 90vw);
@@ -1321,7 +1323,7 @@ h1, h2, h3, .title, .app-title, .brand, .plan-name, .kpi-big, .tname{ font-famil
   display: flex;
   flex-direction: column;
   gap: 12px;
-  transform: translateX(16px);
+  transform: translateX(100%);
   transition: transform .25s ease;
 }
 .mobile-menu-head{
@@ -1338,8 +1340,9 @@ h1, h2, h3, .title, .app-title, .brand, .plan-name, .kpi-big, .tname{ font-famil
   justify-content: flex-start;
 }
 body.mobile-menu-open .mobile-menu{
-  display: flex !important;
   opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 body.mobile-menu-open .mobile-menu-panel{
   transform: translateX(0);
