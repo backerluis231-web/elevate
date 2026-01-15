@@ -1323,9 +1323,12 @@ h1, h2, h3, .title, .app-title, .brand, .plan-name, .kpi-big, .tname{ font-famil
   display: flex;
   flex-direction: column;
   gap: 12px;
-  transform: translateX(8px);
+  position: absolute;
+  right: 0;
+  top: 0;
+  transform: translateX(110%);
   transform-origin: right center;
-  transition: transform .22s ease;
+  transition: transform .26s ease;
 }
 .mobile-menu-head{
   display:flex;
