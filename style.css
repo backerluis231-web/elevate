@@ -1308,6 +1308,8 @@ h1, h2, h3, .title, .app-title, .brand, .plan-name, .kpi-big, .tname{ font-famil
   align-items: flex-start;
   justify-content: flex-end;
   z-index: 2100;
+  opacity: 0;
+  transition: opacity .2s ease;
 }
 .mobile-menu-panel{
   width: min(320px, 90vw);
@@ -1319,6 +1321,8 @@ h1, h2, h3, .title, .app-title, .brand, .plan-name, .kpi-big, .tname{ font-famil
   display: flex;
   flex-direction: column;
   gap: 12px;
+  transform: translateX(16px);
+  transition: transform .25s ease;
 }
 .mobile-menu-head{
   display:flex;
@@ -1335,6 +1339,10 @@ h1, h2, h3, .title, .app-title, .brand, .plan-name, .kpi-big, .tname{ font-famil
 }
 body.mobile-menu-open .mobile-menu{
   display: flex !important;
+  opacity: 1;
+}
+body.mobile-menu-open .mobile-menu-panel{
+  transform: translateX(0);
 }
 @media (min-width: 721px){
   .mobile-menu{ display: none !important; }
