@@ -33,7 +33,7 @@
       <a class="pill" href="./login.html" data-auth="public">Loslegen</a>
 
       <!-- Private -->
-            <button class="icon-btn" id="themeToggle" type="button" aria-label="Dark Mode umschalten" title="Dark Mode">
+      <button class="icon-btn" id="themeToggle" type="button" aria-label="Dark Mode umschalten" title="Dark Mode">
         <span class="icon-sun" aria-hidden="true">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/>
@@ -45,6 +45,9 @@
             <path d="M21 14.5A8.5 8.5 0 1 1 9.5 3a7 7 0 0 0 11.5 11.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
           </svg>
         </span>
+      </button>
+      <button class="icon-btn mobile-menu-btn" id="mobileMenuBtn" data-auth="private" type="button" aria-label="Menü" title="Menü">
+        <span class="icon-menu" aria-hidden="true">≡</span>
       </button>
       <div class="top-xp" data-auth="private" title="XP Fortschritt">
         <span class="top-xp-label">XP</span>
@@ -528,6 +531,24 @@
       </div>
       <p class="hint" id="rewardsModalHint"></p>
       <div class="rewards-scroll" id="rewardsCarousel"></div>
+    </div>
+  </div>
+
+  <div class="mobile-menu" id="mobileMenu" data-auth="private">
+    <div class="mobile-menu-panel">
+      <div class="mobile-menu-head">
+        <div class="brand">
+          <span class="brand-dot"></span>
+          <span>Elevate</span>
+        </div>
+        <button class="icon-btn" id="mobileMenuClose" type="button" aria-label="Schliessen">x</button>
+      </div>
+      <nav class="mobile-menu-nav">
+        <button class="side-link" data-view="dashboard" type="button">Dashboard</button>
+        <button class="side-link" data-view="skills" type="button">Skills</button>
+        <button class="side-link" data-view="tutorials" type="button">Tutorials</button>
+        <button class="side-link" data-view="settings" type="button">Settings</button>
+      </nav>
     </div>
   </div>
 

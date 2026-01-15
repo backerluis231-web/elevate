@@ -369,6 +369,9 @@ const viewSub = $("viewSub");
 const primaryAction = $("primaryAction");
 const appShell = $("appShell");
 const toggleSidebar = $("toggleSidebar");
+const mobileMenu = $("mobileMenu");
+const mobileMenuBtn = $("mobileMenuBtn");
+const mobileMenuClose = $("mobileMenuClose");
 
 function setSidebarCollapsed(collapsed){
   if (!appShell) return;
@@ -434,6 +437,25 @@ async function setView(name, opts = { animate: true }){
 
 document.querySelectorAll(".side-link").forEach(btn => {
   btn.addEventListener("click", () => setView(btn.getAttribute("data-view")));
+});
+
+function openMobileMenu(){
+  document.body.classList.add("mobile-menu-open");
+}
+function closeMobileMenu(){
+  document.body.classList.remove("mobile-menu-open");
+}
+
+mobileMenuBtn?.addEventListener("click", openMobileMenu);
+mobileMenuClose?.addEventListener("click", closeMobileMenu);
+mobileMenu?.addEventListener("click", (e) => {
+  if (e.target === mobileMenu) closeMobileMenu();
+});
+mobileMenu?.querySelectorAll("[data-view]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    setView(btn.getAttribute("data-view"));
+    closeMobileMenu();
+  });
 });
 
 $("goSkills")?.addEventListener("click", () => setView("skills"));
