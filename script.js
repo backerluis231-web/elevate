@@ -447,7 +447,10 @@ function closeMobileMenu(){
   document.body.classList.remove("mobile-menu-open");
 }
 
-mobileMenuBtn?.addEventListener("click", openMobileMenu);
+mobileMenuBtn?.addEventListener("click", () => {
+  if (document.body.classList.contains("mobile-menu-open")) closeMobileMenu();
+  else openMobileMenu();
+});
 mobileMenuClose?.addEventListener("click", closeMobileMenu);
 mobileMenu?.addEventListener("click", (e) => {
   if (e.target === mobileMenu) closeMobileMenu();
