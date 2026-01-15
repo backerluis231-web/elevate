@@ -1304,7 +1304,7 @@ h1, h2, h3, .title, .app-title, .brand, .plan-name, .kpi-big, .tname{ font-famil
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,.45);
-  display: none;
+  display: none !important;
   align-items: flex-start;
   justify-content: flex-end;
   z-index: 2100;
@@ -1334,7 +1334,7 @@ h1, h2, h3, .title, .app-title, .brand, .plan-name, .kpi-big, .tname{ font-famil
   justify-content: flex-start;
 }
 body.mobile-menu-open .mobile-menu{
-  display: flex;
+  display: flex !important;
 }
 @media (min-width: 721px){
   .mobile-menu{ display: none !important; }
