@@ -251,12 +251,12 @@ async function emailAuth(mode){
       return;
     }
     if (!/^[a-zA-Z0-9._-]{3,20}$/.test(username)) {
-      toast("Ungueltiger Username", "3-20 Zeichen: a-z, 0-9, Punkt, Bindestrich, Unterstrich.");
+      toast("Ungültiger Username", "3-20 Zeichen: a-z, 0-9, Punkt, Bindestrich, Unterstrich.");
       return;
     }
     const available = await isUsernameAvailable(username);
     if (!available) {
-      toast("Username vergeben", "Bitte einen anderen waehlen.");
+      toast("Username vergeben", "Bitte einen anderen Wählen.");
       return;
     }
     const { data, error } = await supabaseClient.auth.signUp({
@@ -267,7 +267,7 @@ async function emailAuth(mode){
     if (error) {
       const msg = (error.message || "").toLowerCase();
       if (msg.includes("already registered") || msg.includes("already exists") || msg.includes("user already")) {
-        toast("E-Mail bereits registriert", "Bitte einloggen oder Passwort zuruecksetzen.");
+        toast("E-Mail bereits registriert", "Bitte einloggen oder Passwort zurücksetzen.");
       } else {
         toast("Signup fehlgeschlagen", error.message);
       }
@@ -387,16 +387,24 @@ toggleSidebar?.addEventListener("click", () => {
 
 const views = {
   dashboard: { el: $("view-dashboard"), title: "Dashboard", sub: "Dein Überblick. Starte mit einem Skill.", action: "Zu Skills" },
-  skills: { el: $("view-skills"), title: "Skills", sub: "Skills & Quests verwalten – Progress durch Aufgaben.", action: "Neuen Skill" },
+  skills: { el: $("view-skills"), title: "Skills", sub: "Skills & Quests verwalten - Progress durch Aufgaben.", action: "Neuen Skill" },
   tutorials: { el: $("view-tutorials"), title: "Tutorials", sub: "Suchen, filtern und als Quest speichern.", action: "Zu Skills" },
   settings: { el: $("view-settings"), title: "Settings", sub: "Profil und Account verwalten.", action: "Profil speichern" },
 };
 
+let isViewSwitching = false;
+let pendingView = null;
+
 async function setView(name, opts = { animate: true }){
   const v = views[name] ? name : "dashboard";
+  if (isViewSwitching) {
+    pendingView = { name: v, opts };
+    return;
+  }
   const current = localStorage.getItem(LS.view) || "dashboard";
   if (v === current && opts.animate !== false) return;
 
+  isViewSwitching = true;
   localStorage.setItem(LS.view, v);
 
   const curEl = views[current]?.el;
@@ -412,18 +420,34 @@ async function setView(name, opts = { animate: true }){
   if (viewSub) viewSub.textContent = views[v].sub;
   if (primaryAction) primaryAction.textContent = views[v].action;
 
-  if (!curEl || !nextEl) return;
+  if (!nextEl) {
+    isViewSwitching = false;
+    return;
+  }
+
+  Object.values(views).forEach(view => {
+    view.el?.classList.remove("view-anim-exit", "view-anim-enter");
+  });
 
   if (opts.animate === false) {
     Object.keys(views).forEach(k => views[k].el?.classList.toggle("view-active", k === v));
+    isViewSwitching = false;
+    if (pendingView) {
+      const next = pendingView;
+      pendingView = null;
+      setView(next.name, next.opts);
+    }
     return;
   }
 
   // animate out current
-  curEl.classList.add("view-anim-exit");
-  await sleep(180);
-  curEl.classList.remove("view-anim-exit");
-  curEl.classList.remove("view-active");
+  if (curEl) {
+    curEl.classList.add("view-anim-exit");
+    await sleep(180);
+    curEl.classList.remove("view-anim-exit");
+    curEl.classList.remove("view-active");
+  }
+  Object.keys(views).forEach(k => views[k].el?.classList.remove("view-active"));
 
   // show next + animate in
   nextEl.classList.add("view-active");
@@ -433,6 +457,13 @@ async function setView(name, opts = { animate: true }){
 
   // UX: keep app top in view
   document.getElementById("appShell")?.scrollIntoView({ behavior: "smooth" });
+
+  isViewSwitching = false;
+  if (pendingView) {
+    const next = pendingView;
+    pendingView = null;
+    setView(next.name, next.opts);
+  }
 }
 
 document.querySelectorAll(".side-link").forEach(btn => {
@@ -485,7 +516,7 @@ saveProfileBtn?.addEventListener("click", async () => {
     return;
   }
   if (!/^[a-zA-Z0-9._-]{3,20}$/.test(username)) {
-    toast("Ungueltiger Username", "3-20 Zeichen: a-z, 0-9, Punkt, Bindestrich, Unterstrich.");
+    toast("Ungültiger Username", "3-20 Zeichen: a-z, 0-9, Punkt, Bindestrich, Unterstrich.");
     return;
   }
   const { data: userData } = await supabaseClient.auth.getUser();
@@ -496,7 +527,7 @@ saveProfileBtn?.addEventListener("click", async () => {
     .eq("username", username)
     .maybeSingle();
   if (check.data && check.data.id !== userData.user.id) {
-    toast("Username vergeben", "Bitte einen anderen waehlen.");
+    toast("Username vergeben", "Bitte einen anderen Wählen.");
     return;
   }
   const { error } = await supabaseClient.auth.updateUser({
@@ -623,15 +654,15 @@ function renderRecommended(){
 
 const REWARDS = [
   { level: 2, title: "Bronze Badge", category: "Badges", desc: "Erstes Profil-Badge freigeschaltet." },
-  { level: 3, title: "Focus Theme", category: "Theme", desc: "Ruhiger Farbmodus fuer Fokus." },
+  { level: 3, title: "Focus Theme", category: "Theme", desc: "Ruhiger Farbmodus für Fokus." },
   { level: 4, title: "Quest Booster", category: "Quests", desc: "+1 Extra-Quest pro Skill." },
   { level: 5, title: "Streak Boost", category: "Streak", desc: "Streak zeigt dir 7-Tage-Serie." },
-  { level: 6, title: "Milestone Frame", category: "Profil", desc: "Avatar-Rahmen fuer Meilensteine." },
+  { level: 6, title: "Milestone Frame", category: "Profil", desc: "Avatar-Rahmen für Meilensteine." },
   { level: 7, title: "Pro Highlight", category: "Pro", desc: "Skill-Karten mit Highlight." },
-  { level: 8, title: "Weekly Summary", category: "Insights", desc: "Kurzer Wochen-Rueckblick." },
+  { level: 8, title: "Weekly Summary", category: "Insights", desc: "Kurzer Wochen-Rückblick." },
   { level: 9, title: "Deep Focus Mode", category: "Focus", desc: "Ablenkungsarme Ansicht im Skill-Tab." },
   { level: 10, title: "Gold Badge", category: "Badges", desc: "Goldenes Profil-Badge freigeschaltet." },
-  { level: 12, title: "Custom Accent", category: "Theme", desc: "Eigene Akzentfarbe fuer die UI." }
+  { level: 12, title: "Custom Accent", category: "Theme", desc: "Eigene Akzentfarbe für die UI." }
 ];
 
 function getRewardForLevel(level){
@@ -711,10 +742,10 @@ rewardsModal?.addEventListener("click", (e) => {
 
 const LEGAL_CONTENT = {
   datenschutz: {
-    title: "Datenschutzerklaerung (Schweiz)",
+    title: "Datenschutzerklärung (Schweiz)",
     body: `
       <h4>1. Grundsatz</h4>
-      <p>Der Schutz Ihrer Personendaten ist uns ein wichtiges Anliegen. Diese Datenschutzerklaerung informiert ueber die Bearbeitung von Personendaten im Zusammenhang mit dieser Website und den damit verbundenen Dienstleistungen. Wir bearbeiten Personendaten im Einklang mit dem Schweizer Datenschutzgesetz (DSG) sowie, soweit anwendbar, der DSGVO.</p>
+      <p>Der Schutz Ihrer Personendaten ist uns ein wichtiges Anliegen. Diese Datenschutzerklärung informiert über die Bearbeitung von Personendaten im Zusammenhang mit dieser Website und den damit verbundenen Dienstleistungen. Wir bearbeiten Personendaten im Einklang mit dem Schweizer Datenschutzgesetz (DSG) sowie, soweit anwendbar, der DSGVO.</p>
       <h4>2. Verantwortlicher</h4>
       <p>Luis Backer, 6033 Buchrain, Schweiz<br>E-Mail: Backerluis231@gmail.com</p>
       <h4>3. Bearbeitete Personendaten</h4>
@@ -726,29 +757,29 @@ const LEGAL_CONTENT = {
       <h4>5. Rechtsgrundlagen</h4>
       <p>Einwilligung (sofern erforderlich), Vertragserfuellung (Bereitstellung der App), berechtigte Interessen (Betrieb und Sicherheit), rechtliche Verpflichtungen.</p>
       <h4>6. Cookies</h4>
-      <p>Es werden keine Tracking-Cookies eingesetzt. Technisch notwendige Daten koennen zur Bereitstellung der Funktionen verwendet werden. Einstellungen wie Theme koennen lokal gespeichert werden.</p>
+      <p>Es werden keine Tracking-Cookies eingesetzt. Technisch notwendige Daten können zur Bereitstellung der Funktionen verwendet werden. Einstellungen wie Theme können lokal gespeichert werden.</p>
       <h4>7. Datenweitergabe</h4>
-      <p>Wir geben Personendaten nur weiter, wenn dies fuer den Betrieb erforderlich ist oder eine rechtliche Grundlage besteht. Dienstleister: Supabase (Authentifizierung), Vercel (Hosting). Wir verkaufen keine Personendaten.</p>
-      <h4>8. Datenuebermittlung ins Ausland</h4>
-      <p>Je nach Dienstleister koennen Daten in Laender ausserhalb der Schweiz uebermittelt werden. Es werden geeignete Garantien eingesetzt (z.B. Standardvertragsklauseln).</p>
+      <p>Wir geben Personendaten nur weiter, wenn dies für den Betrieb erforderlich ist oder eine rechtliche Grundlage besteht. Dienstleister: Supabase (Authentifizierung), Vercel (Hosting). Wir verkaufen keine Personendaten.</p>
+      <h4>8. Datenübermittlung ins Ausland</h4>
+      <p>Je nach Dienstleister können Daten in LÄnder ausserhalb der Schweiz übermittelt werden. Es werden geeignete Garantien eingesetzt (z.B. Standardvertragsklauseln).</p>
       <h4>9. Datensicherheit</h4>
       <p>Angemessene technische und organisatorische Massnahmen (TLS/SSL, Zugriffskontrolle, Sicherheitsupdates).</p>
       <h4>10. Aufbewahrungsdauer</h4>
-      <p>Kontodaten bis zur Loeschung des Kontos. Lokale Daten bleiben im Browser, bis sie geloescht werden.</p>
+      <p>Kontodaten bis zur Loeschung des Kontos. Lokale Daten bleiben im Browser, bis sie gelöscht werden.</p>
       <h4>11. Ihre Rechte</h4>
       <p>Auskunft, Berichtigung, Loeschung, Widerspruch, Datenherausgabe. Kontakt: Backerluis231@gmail.com</p>
       <h4>12. Beschwerderecht</h4>
       <p>Beschwerde bei der zustaendigen Behoerde (EDOEB): www.edoeb.admin.ch</p>
-      <h4>13. Aenderungen</h4>
-      <p>Wir koennen diese Datenschutzerklaerung anpassen. Die aktuelle Version ist hier abrufbar.</p>
+      <h4>13. Änderungen</h4>
+      <p>Wir können diese Datenschutzerklärung anpassen. Die aktuelle Version ist hier abrufbar.</p>
     `
   },
   agb: {
     title: "AGB (Schweiz) – Demo",
     body: `
       <h4>1. Geltungsbereich</h4>
-      <p>Diese Allgemeinen Geschaeftsbedingungen (AGB) gelten fuer alle Dienstleistungen, die ueber diese Website angeboten werden. Mit der Nutzung der Dienste erklaeren Sie sich mit diesen AGB einverstanden. Abweichende Bedingungen werden nicht anerkannt, ausser wir stimmen schriftlich zu.</p>
-      <p>Die AGB gelten fuer kostenlose Nutzung sowie fuer kostenpflichtige Abonnements. Mit Registrierung oder Nutzung bestaetigen Sie, dass Sie diese Bedingungen gelesen und verstanden haben.</p>
+      <p>Diese Allgemeinen Geschäftsbedingungen (AGB) gelten für alle Dienstleistungen, die über diese Website angeboten werden. Mit der Nutzung der Dienste erklaeren Sie sich mit diesen AGB einverstanden. Abweichende Bedingungen werden nicht anerkannt, ausser wir stimmen schriftlich zu.</p>
+      <p>Die AGB gelten für kostenlose Nutzung sowie für kostenpflichtige Abonnements. Mit Registrierung oder Nutzung bestätigen Sie, dass Sie diese Bedingungen gelesen und verstanden haben.</p>
 
       <h4>2. Vertragspartner</h4>
       <p>Vertragspartner ist: Luis Backer, 6033 Buchrain, Schweiz. E-Mail: Backerluis231@gmail.com (nachfolgend "Anbieter").</p>
@@ -757,7 +788,7 @@ const LEGAL_CONTENT = {
       <p>Elevate ist ein Skill-Tracker. Der Service umfasst je nach Funktionsumfang:</p>
       <p><strong>3.1 Basisfunktionen</strong><br>Skills verwalten, Fortschritt setzen, Quests erstellen und abschliessen, Tutorials speichern.</p>
       <p><strong>3.2 Gamification</strong><br>Level/XP, Badges und Belohnungen, Fortschrittsanzeigen.</p>
-      <p><strong>3.3 Erweiterte Funktionen (Pro)</strong><br>Erweiterte Statistikfunktionen, zusaetzliche Quests, erweiterte Personalisierung (Platzhalter).</p>
+      <p><strong>3.3 Erweiterte Funktionen (Pro)</strong><br>Erweiterte Statistikfunktionen, zusätzliche Quests, erweiterte Personalisierung (Platzhalter).</p>
       <p><strong>3.4 Wichtiger Hinweis</strong><br>Die Ergebnisse dienen als Motivation und Orientierung und ersetzen keine professionelle Beratung.</p>
 
       <h4>4. Vertragsschluss und Registrierung</h4>
@@ -765,42 +796,42 @@ const LEGAL_CONTENT = {
       <p>Sie sind verpflichtet, korrekte Angaben zu machen und Ihre Zugangsdaten vertraulich zu behandeln.</p>
 
       <h4>5. Preise und Zahlungsbedingungen</h4>
-      <p>Es gibt Free- und Pro-Nutzung. Preise und Leistungsumfang werden auf der Website angezeigt. Zahlungen erfolgen im Voraus ueber einen externen Zahlungsanbieter (Platzhalter).</p>
+      <p>Es gibt Free- und Pro-Nutzung. Preise und Leistungsumfang werden auf der Website angezeigt. Zahlungen erfolgen im Voraus über einen externen Zahlungsanbieter (Platzhalter).</p>
       <p>Preisänderungen werden rechtzeitig bekannt gegeben und gelten ab der naechsten Abrechnungsperiode.</p>
 
-      <h4>6. Vertragslaufzeit und Kuendigung</h4>
-      <p>Pro-Abonnements laufen monatlich und verlaengern sich automatisch, sofern nicht vor Ablauf gekuendigt wird. Eine Kuendigung ist zum Ende der Abrechnungsperiode moeglich.</p>
-      <p>Der Anbieter kann den Vertrag aus wichtigem Grund fristlos kuendigen (z.B. Missbrauch, Zahlungsverzug).</p>
+      <h4>6. Vertragslaufzeit und Kündigung</h4>
+      <p>Pro-Abonnements laufen monatlich und verlaengern sich automatisch, sofern nicht vor Ablauf gekuendigt wird. Eine Kündigung ist zum Ende der Abrechnungsperiode möglich.</p>
+      <p>Der Anbieter kann den Vertrag aus wichtigem Grund fristlos kündigen (z.B. Missbrauch, Zahlungsverzug).</p>
 
       <h4>7. Widerrufsrecht (falls anwendbar)</h4>
       <p>Sofern rechtlich erforderlich, gilt ein 14-taegiges Widerrufsrecht. Zur Ausuebung kontaktieren Sie: Backerluis231@gmail.com.</p>
-      <p>Das Widerrufsrecht kann vorzeitig erloeschen, wenn Sie der Ausfuehrung vor Ablauf der Frist zustimmen.</p>
+      <p>Das Widerrufsrecht kann vorzeitig erlöschen, wenn Sie der ausführung vor Ablauf der Frist zustimmen.</p>
 
       <h4>8. Nutzungsrechte und Pflichten</h4>
-      <p>Die Nutzung ist fuer private Zwecke gestattet. Verboten sind Missbrauch, automatisierte Zugriffe, Weitergabe von Zugangsdaten sowie rechtswidrige Inhalte.</p>
+      <p>Die Nutzung ist für private Zwecke gestattet. Verboten sind Missbrauch, automatisierte Zugriffe, Weitergabe von Zugangsdaten sowie rechtswidrige Inhalte.</p>
       <p>Sie duerfen Ihre eigenen Inhalte nutzen. Rechte Dritter sind zu respektieren.</p>
 
       <h4>9. Geistiges Eigentum</h4>
-      <p>Alle Rechte an Design, Code und Inhalten verbleiben beim Anbieter. Die Nutzung gewaehrt keine Eigentumsrechte.</p>
+      <p>Alle Rechte an Design, Code und Inhalten verbleiben beim Anbieter. Die Nutzung Gewährt keine Eigentumsrechte.</p>
 
       <h4>10. Datenschutz</h4>
-      <p>Die Verarbeitung personenbezogener Daten erfolgt gemaess der Datenschutzerklaerung. Mit Nutzung der Dienste stimmen Sie dieser zu.</p>
+      <p>Die Verarbeitung personenbezogener Daten erfolgt gemaess der Datenschutzerklärung. Mit Nutzung der Dienste stimmen Sie dieser zu.</p>
 
       <h4>11. Haftungsausschluss</h4>
-      <p>Der Anbieter haftet nicht fuer indirekte Schaeden, entgangenen Gewinn oder Folgeschaeden, soweit gesetzlich zulaessig.</p>
+      <p>Der Anbieter haftet nicht für indirekte Schaeden, entgangenen Gewinn oder Folgeschaeden, soweit gesetzlich zulässig.</p>
       <p>Bei nicht ausschliessbarer Haftung ist diese auf die in den letzten 12 Monaten bezahlten Betraege begrenzt (max. CHF 100).</p>
 
-      <h4>12. Verfuegbarkeit und Gewaehrleistung</h4>
-      <p>Es wird keine durchgehende Verfuegbarkeit garantiert. Wartungen und Stoerungen sind moeglich. Ein Anspruch auf Entschaedigung besteht nicht.</p>
+      <h4>12. verfügbarkeit und Gewährleistung</h4>
+      <p>Es wird keine durchgehende verfügbarkeit garantiert. Wartungen und Stoerungen sind möglich. Ein Anspruch auf Entschaedigung besteht nicht.</p>
 
-      <h4>13. Aenderungen des Services und der AGB</h4>
-      <p>Der Anbieter kann den Service und diese AGB anpassen. Wesentliche Aenderungen werden angemessen mitgeteilt.</p>
+      <h4>13. Änderungen des Services und der AGB</h4>
+      <p>Der Anbieter kann den Service und diese AGB anpassen. Wesentliche Änderungen werden angemessen mitgeteilt.</p>
 
       <h4>14. Salvatorische Klausel</h4>
-      <p>Unwirksame Bestimmungen beruehren die Gueltigkeit der uebrigen Bestimmungen nicht.</p>
+      <p>Unwirksame Bestimmungen beruehren die Gueltigkeit der übrigen Bestimmungen nicht.</p>
 
       <h4>15. Anwendbares Recht und Gerichtsstand</h4>
-      <p>Es gilt schweizerisches Recht. Gerichtsstand ist, soweit zulaessig, der Wohnsitz des Anbieters.</p>
+      <p>Es gilt schweizerisches Recht. Gerichtsstand ist, soweit zulässig, der Wohnsitz des Anbieters.</p>
 
       <h4>16. Kontakt</h4>
       <p>Fragen zu diesen AGB: Backerluis231@gmail.com</p>
@@ -822,16 +853,16 @@ const LEGAL_CONTENT = {
       <p>Elevate bietet folgende Dienste an:</p>
       <p>Skill-Tracking mit Fortschritt und Quests<br>Gamification-System mit Levels und Belohnungen<br>Tutorial-Verwaltung und Speicherung<br>Optionale Pro-Funktionen (Platzhalter)</p>
       <h4>Haftungsausschluss</h4>
-      <p>Der Autor uebernimmt keine Gewaehr fuer die Richtigkeit, Genauigkeit, Aktualitaet, Zuverlaessigkeit und Vollstaendigkeit der Informationen.</p>
-      <p>Haftungsansprueche gegen den Autor wegen Schaeden materieller oder immaterieller Art, die aus dem Zugriff oder der Nutzung bzw. Nichtnutzung der veroeffentlichten Informationen, durch Missbrauch der Verbindung oder durch technische Stoerungen entstanden sind, werden ausgeschlossen.</p>
-      <p>Alle Angebote sind freibleibend. Der Autor behaelt es sich vor, Teile der Seiten oder das gesamte Angebot ohne Ankuendigung zu veraendern, zu ergaenzen, zu loeschen oder die Veroeffentlichung zeitweise oder endgueltig einzustellen.</p>
-      <h4>Haftungsausschluss fuer Links</h4>
-      <p>Verweise und Links auf Websites Dritter liegen ausserhalb unseres Verantwortungsbereichs. Es wird jegliche Verantwortung fuer solche Websites abgelehnt. Der Zugriff und die Nutzung erfolgen auf eigene Gefahr.</p>
+      <p>Der Autor übernimmt keine Gewähr für die Richtigkeit, Genauigkeit, Aktualitaet, Zuverlaessigkeit und Vollstaendigkeit der Informationen.</p>
+      <p>Haftungsansprüche gegen den Autor wegen Schaeden materieller oder immaterieller Art, die aus dem Zugriff oder der Nutzung bzw. Nichtnutzung der veröffentlichten Informationen, durch Missbrauch der Verbindung oder durch technische Stoerungen entstanden sind, werden ausgeschlossen.</p>
+      <p>Alle Angebote sind freibleibend. Der Autor behaelt es sich vor, Teile der Seiten oder das gesamte Angebot ohne AnKündigung zu verändern, zu ergänzen, zu löschen oder die Veröffentlichung zeitweise oder endgueltig einzustellen.</p>
+      <h4>Haftungsausschluss für Links</h4>
+      <p>Verweise und Links auf Websites Dritter liegen ausserhalb unseres Verantwortungsbereichs. Es wird jegliche Verantwortung für solche Websites abgelehnt. Der Zugriff und die Nutzung erfolgen auf eigene Gefahr.</p>
       <h4>Urheberrechte</h4>
       <p>Die Urheber- und alle anderen Rechte an Inhalten, Bildern, Fotos oder anderen Dateien auf dieser Website gehoeren ausschliesslich dem Betreiber oder den speziell genannten Rechteinhabern.</p>
-      <p>Fuer die Reproduktion jeglicher Elemente ist die schriftliche Zustimmung des Urheberrechtstraegers im Voraus einzuholen.</p>
+      <p>für die Reproduktion jeglicher Elemente ist die schriftliche Zustimmung des Urheberrechtstraegers im Voraus einzuholen.</p>
       <h4>Anwendbares Recht und Gerichtsstand</h4>
-      <p>Diese Website sowie deren Inhalte unterliegen dem Schweizer Recht. Ausschliesslicher Gerichtsstand ist Buchrain, Schweiz, soweit gesetzlich zulaessig.</p>
+      <p>Diese Website sowie deren Inhalte unterliegen dem Schweizer Recht. Ausschliesslicher Gerichtsstand ist Buchrain, Schweiz, soweit gesetzlich zulässig.</p>
       <p><strong>Stand:</strong> Januar 2026</p>
     `
   }
@@ -978,7 +1009,7 @@ function updateSkillById(skillId, data){
 }
 
 function deleteSkill(id){
-  const ok = confirm("Skill wirklich loeschen?");
+  const ok = confirm("Skill wirklich löschen?");
   if (!ok) return;
   setSkills(getSkills().filter(s => s.id !== id));
 
@@ -990,7 +1021,7 @@ function deleteSkill(id){
   hydrateSkillSelects();
   renderQuests();
   updateStats();
-  toast("Skill geloescht", "Und Quests entfernt.");
+  toast("Skill gelöscht", "Und Quests entfernt.");
 }
 
 function renderSkills(){
@@ -1026,7 +1057,7 @@ function renderSkills(){
           <button class="small-btn" data-a="minus" title="-5">-5</button>
           <button class="small-btn" data-a="plus" title="+5">+5</button>
           <button class="small-btn" data-a="edit" title="Bearbeiten">Edit</button>
-          <button class="small-btn danger" data-a="del" title="Loeschen">X</button>
+          <button class="small-btn danger" data-a="del" title="löschen">X</button>
         </div>
       </div>
       <div class="skill-meta">
@@ -1324,6 +1355,7 @@ async function boot(){
 }
 
 boot();
+
 
 
 
