@@ -660,6 +660,13 @@ function renderRewardsCarousel(level){
 
 function openRewardsModal(){
   if (!rewardsModal) return;
+  try {
+    const skills = getSkills();
+    const total = skills.reduce((sum, s) => sum + (Number(s.progress) || 0), 0);
+    const level = Math.max(1, Math.floor(total / 100) + 1);
+    renderRewardsCarousel(level);
+    updateRewardHints(level);
+  } catch {}
   rewardsModal.style.display = "flex";
   document.body.classList.add("modal-open");
 }
