@@ -2,23 +2,23 @@
 html { scroll-behavior: smooth; }
 
 :root{
-  --bg: #f6f3ee;
-  --text: #1f2328;
-  --muted: #6b7280;
+  --bg: #f7fbfc;
+  --text: #0f172a;
+  --muted: #5f6b7a;
 
-  --accent: #8b8ff2;
-  --accent2: #aeb3ff;
-  --accent-rgb: 139, 143, 242;
-  --accent2-rgb: 174, 179, 255;
+  --accent: #38bdf8;
+  --accent2: #60a5fa;
+  --accent-rgb: 56, 189, 248;
+  --accent2-rgb: 96, 165, 250;
 
-  --card: rgba(255,255,255,.90);
-  --card2: rgba(255,255,255,.68);
-  --stroke: rgba(31,35,40,.10);
+  --card: rgba(255,255,255,.94);
+  --card2: rgba(255,255,255,.76);
+  --stroke: rgba(15,23,42,.12);
 
   --shadow: 0 18px 50px rgba(15,23,42,.10);
   --shadow2: 0 10px 28px rgba(15,23,42,.08);
 
-  --r: 20px;
+  --r: 18px;
   --pill: 999px;
   --font-head: 'Sora', system-ui, sans-serif;
   --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -1866,9 +1866,13 @@ body:not(.authed)::after{
   position: fixed;
   inset: 0;
   background-image:
-    radial-gradient(rgba(31,35,40,.16) 0.75px, transparent 0.75px);
-  background-size: 20px 20px;
-  opacity: .9;
+    conic-gradient(from 145deg at 18% 22%, rgba(var(--accent-rgb), .10), transparent 38%, rgba(var(--accent2-rgb), .08), transparent 72%),
+    radial-gradient(120% 80% at -10% 30%, rgba(31,35,40,.06) 0 40%, transparent 41%),
+    radial-gradient(120% 80% at 110% 60%, rgba(31,35,40,.05) 0 38%, transparent 39%),
+    repeating-linear-gradient(0deg, rgba(31,35,40,.035) 0 1px, transparent 1px 36px),
+    radial-gradient(rgba(31,35,40,.07) 0.7px, transparent 0.7px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 36px 36px, 34px 34px;
+  opacity: .78;
   pointer-events: none;
   z-index: 0;
   animation: driftB 22s ease-in-out infinite;
@@ -1878,9 +1882,13 @@ body.authed::after{
   position: fixed;
   inset: 0;
   background-image:
-    radial-gradient(rgba(31,35,40,.16) 0.75px, transparent 0.75px);
-  background-size: 20px 20px;
-  opacity: .55;
+    conic-gradient(from 145deg at 18% 22%, rgba(var(--accent-rgb), .10), transparent 38%, rgba(var(--accent2-rgb), .08), transparent 72%),
+    radial-gradient(120% 80% at -10% 30%, rgba(31,35,40,.06) 0 40%, transparent 41%),
+    radial-gradient(120% 80% at 110% 60%, rgba(31,35,40,.05) 0 38%, transparent 39%),
+    repeating-linear-gradient(0deg, rgba(31,35,40,.035) 0 1px, transparent 1px 36px),
+    radial-gradient(rgba(31,35,40,.07) 0.7px, transparent 0.7px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 36px 36px, 34px 34px;
+  opacity: .6;
   pointer-events: none;
   z-index: 0;
   animation: driftB 22s ease-in-out infinite;
