@@ -442,10 +442,10 @@ body[data-theme="dark"] .strip-item{
 .grid > *{ min-width: 0; }
 
 .card{
-  background: var(--card);
-  border: 1px solid rgba(255,255,255,.35);
+  background: rgba(255,255,255,.88);
+  border: 1px solid rgba(31,35,40,.08);
   border-radius: var(--r);
-  box-shadow: var(--shadow2);
+  box-shadow: 0 20px 44px rgba(15,23,42,.10);
   padding: 20px;
 }
 body[data-theme="dark"] .card{ border: 1px solid rgba(255,255,255,.08); }
@@ -535,10 +535,10 @@ body[data-theme="dark"] .card{ border: 1px solid rgba(255,255,255,.08); }
   top: 72px;
   height: calc(100vh - 72px);
   border-radius: 0;
-  background: var(--card);
-  border: none;
-  border-right: 1px solid rgba(255,255,255,.45);
-  box-shadow: var(--shadow2);
+  background: rgba(255,255,255,.78);
+  border: 1px solid rgba(31,35,40,.08);
+  border-right: 1px solid rgba(31,35,40,.12);
+  box-shadow: 0 26px 60px rgba(15,23,42,.12);
   padding: 18px 12px;
   display:flex;
   flex-direction: column;
@@ -1887,6 +1887,17 @@ body.authed::after{
 }
 body.authed{
   background: #f6f3ee;
+}
+body.authed::before{
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 15%, rgba(var(--accent2-rgb), .18), transparent 50%),
+    radial-gradient(circle at 82% 30%, rgba(var(--accent-rgb), .14), transparent 50%),
+    radial-gradient(circle at 30% 85%, rgba(205,215,200,.18), transparent 55%);
+  pointer-events: none;
+  z-index: 0;
 }
 body.authed .app,
 body.authed .app-main{
