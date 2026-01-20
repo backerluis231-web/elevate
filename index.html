@@ -1,12 +1,12 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="de">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Elevate – Skill Tracker</title>
+  <title>Elevate � Skill Tracker</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="./style.css" />
 </head>
 
@@ -46,8 +46,8 @@
           </svg>
         </span>
       </button>
-      <button class="icon-btn mobile-menu-btn" id="mobileMenuBtn" data-auth="private" type="button" aria-label="Menü" title="Menü">
-        <span class="icon-menu" aria-hidden="true">≡</span>
+      <button class="icon-btn mobile-menu-btn" id="mobileMenuBtn" data-auth="private" type="button" aria-label="Men�" title="Men�">
+        <span class="icon-menu" aria-hidden="true">=</span>
       </button>
       <div class="top-xp" data-auth="private" title="XP Fortschritt">
         <span class="top-xp-label">XP</span>
@@ -60,155 +60,149 @@
 
   <main>
     <!-- =========================
-         LANDING (PUBLIC) - SEQUENCE
+         LANDING (PUBLIC) - CALM
     ========================== -->
-    <section class="sequence" id="hero" data-auth="public">
-      <div class="seq-track" id="seqTrack">
-        <div class="seq-anchor" id="why" style="--at:0.28"></div>
-        <div class="seq-anchor" id="flow" style="--at:0.55"></div>
-        <div class="seq-anchor" id="pro" style="--at:0.72"></div>
-        <div class="seq-anchor" id="faq" style="--at:0.86"></div>
-
-        <div class="seq-stage" id="seqStage">
-          <div class="seq-item seq-title" data-at="0.06" data-range="0.2" data-depth="1.2">
-            <div class="seq-kicker">Skill Tracker für fokusiertes Lernen</div>
-            <div class="seq-title-ghost" aria-hidden="true">
-              <span data-shift="-12">Level</span>
-              <span data-shift="8">up</span>
-              <span data-shift="-10">deine</span>
-              <span data-shift="14">Skills</span>
-            </div>
-            <div class="seq-title-main">
-              Level up<br><span>deine Skills</span>
+    <section class="landing" id="hero" data-auth="public">
+      <div class="landing-frame">
+        <div class="hero-sentence-wrap">
+          <div class="hero-mark">Elevate</div>
+          <h1 class="hero-sentence">Level up<br><span>deine Skills.<i class="hero-dot" aria-hidden="true"></i></span></h1>
+        </div>
+      </div>
+    </section>
+    <section class="landing" id="why" data-auth="public">
+      <div class="landing-frame landing-panel">
+        <div class="section-head">
+          <p class="section-kicker">Warum Elevate</p>
+          <h2>Ein System, das still arbeitet und dich weiterzieht.</h2>
+        </div>
+        <div class="why-row">
+          <div class="why-card">
+            <h3>Klarheit im Kopf</h3>
+            <p>Du siehst sofort, was dran ist und was als naechstes lohnt.</p>
+          </div>
+          <div class="why-card">
+            <h3>Mini-Schritte, grosser Effekt</h3>
+            <p>Quests machen Lernen messbar und angenehm.</p>
+          </div>
+        </div>
+        <div class="why-note">Struktur - Ruhe - Momentum</div>
+      </div>
+    </section>
+    <section class="landing" id="flow" data-auth="public">
+      <div class="landing-frame landing-panel">
+        <div class="section-head">
+          <p class="section-kicker">Ablauf</p>
+          <h2>Kurz. Ruhig. Wirksam.</h2>
+        </div>
+        <div class="flow-list">
+          <div class="flow-step">
+            <span>01</span>
+            <div>
+              <h3>Starten</h3>
+              <p>Loslegen klicken und direkt anfangen.</p>
             </div>
           </div>
-
-          <div class="seq-item seq-intro" data-at="0.18" data-range="0.18" data-depth="0.7">
-            <p>
-              Elevate ist dein Skill-Tracker für fokusiertes Lernen: Skills planen,
-              Fortschritt in Prozent sehen und kleine Quests erledigen - so bleibt
-              Lernen messbar und motivierend.
-            </p>
-            <div class="seq-footnote">Clean Skill Tracker Demo - Landing ohne Bilder - modern & ruhig.</div>
-          </div>
-
-          <div class="seq-item seq-core" data-at="0.32" data-range="0.2" data-depth="0.9">
-            <div class="seq-grid">
-              <div>
-                <h3>Übersicht</h3>
-                <p>Tabs statt endloser Seiten. Du weißt immer, wo du bist.</p>
-              </div>
-              <div>
-                <h3>Quests</h3>
-                <p>Aufgaben mit Punkten. Erledigen - Progress steigt automatisch.</p>
-              </div>
-              <div>
-                <h3>Tutorials</h3>
-                <p>Saubere Karten, Filter, und "als Quest speichern".</p>
-              </div>
+          <div class="flow-step">
+            <span>02</span>
+            <div>
+              <h3>Skill definieren</h3>
+              <p>Ziel setzen, Progress markieren.</p>
             </div>
           </div>
-
-          <div class="seq-item seq-why" data-at="0.44" data-range="0.2" data-depth="0.8">
-            <div class="seq-columns">
-              <div>
-                <h3>Für echte Nutzung gebaut</h3>
-                <p>Später kannst du Accounts, Cloud-Sync und Levels hinzufügen. UI ist schon dafür geeignet.</p>
-              </div>
-              <div>
-                <h3>Minimal, aber lebendig</h3>
-                <p>Bewegender Hintergrund + klare Cards. Modern, ruhig, nicht überwältigend.</p>
-              </div>
-            </div>
-            <div class="seq-motif">Vertrauen • Fokus • Motivation</div>
-          </div>
-
-          <div class="seq-item seq-flow" data-at="0.6" data-range="0.2" data-depth="0.9">
-            <div class="seq-steps">
-              <div>
-                <span>01</span>
-                <div>
-                  <h3>Login</h3>
-                  <p>Loslegen klicken → Login öffnen.</p>
-                </div>
-              </div>
-              <div>
-                <span>02</span>
-                <div>
-                  <h3>Skill hinzufügen</h3>
-                  <p>Einen Skill anlegen und Progress setzen.</p>
-                </div>
-              </div>
-              <div>
-                <span>03</span>
-                <div>
-                  <h3>Quests erledigen</h3>
-                  <p>Quest abschließen → Progress steigt automatisch.</p>
-                </div>
-              </div>
+          <div class="flow-step">
+            <span>03</span>
+            <div>
+              <h3>Dranbleiben</h3>
+              <p>Quests erledigen, Progress steigt automatisch.</p>
             </div>
           </div>
-
-          <div class="seq-item seq-pro" data-at="0.74" data-range="0.16" data-depth="0.7">
-            <div class="seq-price">
-              <div>
-                <h3>Free</h3>
-                <p>Perfekt zum Starten</p>
-                <ul>
-                  <li>Skill Tracker</li>
-                  <li>Quests (Basic)</li>
-                  <li>Tutorial Filter</li>
-                </ul>
-              </div>
-              <div class="accent">
-                <h3>Pro</h3>
-                <p>Mehr Motivation</p>
-                <ul>
-                  <li>Daily Quests + Streaks (später)</li>
-                  <li>Level / XP (später)</li>
-                  <li>Cloud Sync (später)</li>
-                </ul>
-              </div>
-            </div>
+        </div>
+        <div class="hero-cta">
+          <a class="cta-link" href="./login.html">Jetzt loslegen</a>
+          <span>In weniger als 1 Minute bereit.</span>
+        </div>
+      </div>
+    </section>
+    <section class="landing" id="pro" data-auth="public">
+      <div class="landing-frame landing-panel">
+        <div class="section-head">
+          <p class="section-kicker">Pakete</p>
+          <h2>Free fuer Ruhe. Pro fuer Tempo.</h2>
+        </div>
+        <div class="price-row">
+          <div class="price-card">
+            <h3>Free</h3>
+            <p>Einfach starten</p>
+            <ul>
+              <li>Skill Tracker</li>
+              <li>Quests (Basis)</li>
+              <li>Tutorial Filter</li>
+              <li>LocalStorage</li>
+            </ul>
+            <div class="price-tag">0.-</div>
           </div>
-
-          <div class="seq-item seq-faq" data-at="0.86" data-range="0.14" data-depth="0.6">
-            <div class="seq-faq">
-              <div>
-                <h3>Speichert es meine Daten?</h3>
-                <p>Ja - aktuell lokal im Browser (LocalStorage). Cloud-Sync ist später möglich.</p>
-              </div>
-              <div>
-                <h3>Warum Quests?</h3>
-                <p>Weil kleine Schritte leichter sind. Quests geben dir messbaren Fortschritt.</p>
-              </div>
-              <div>
-                <h3>Tutorial als Quest?</h3>
-                <p>Ja - in Tutorials "Als Quest (+10)" klicken, wenn ein Ziel-Skill gewählt ist.</p>
-              </div>
-              <div>
-                <h3>Kann ich das Design ändern?</h3>
-                <p>Ja - Farben, Cards, Hintergrund und Layout liegen sauber im CSS.</p>
-              </div>
-            </div>
+          <div class="price-card accent">
+            <h3>Pro</h3>
+            <p>Mehr Momentum</p>
+            <ul>
+              <li>Daily Quests + Streaks (spaeter)</li>
+              <li>Level / XP (spaeter)</li>
+              <li>Cloud Sync (spaeter)</li>
+              <li>Prioritaet (spaeter)</li>
+            </ul>
+            <div class="price-tag">9.-</div>
           </div>
-
-          <div class="seq-item seq-cta" data-at="0.96" data-range="0.08" data-depth="0.4">
-            <div class="seq-cta">
-              <a class="seq-cta-link" href="./login.html">Loslegen</a>
-              <span>Starte in weniger als einer Minute.</span>
-            </div>
-            <div class="seq-legal">
-              <button class="link-btn" type="button" data-legal="datenschutz">Datenschutz</button>
-              <button class="link-btn" type="button" data-legal="agb">AGB</button>
-              <button class="link-btn" type="button" data-legal="impressum">Impressum</button>
-            </div>
+        </div>
+      </div>
+    </section>
+    <section class="landing" id="faq" data-auth="public">
+      <div class="landing-frame landing-panel">
+        <div class="section-head">
+          <p class="section-kicker">FAQ</p>
+          <h2>Kurz, ehrlich, klar.</h2>
+        </div>
+        <div class="faq-grid">
+          <div class="faq-card">
+            <h3>Wo liegen meine Daten?</h3>
+            <p>Lokal im Browser. Cloud Sync folgt spaeter.</p>
           </div>
+          <div class="faq-card">
+            <h3>Warum Quests?</h3>
+            <p>Kleine Schritte machen Fortschritt sichtbar.</p>
+          </div>
+          <div class="faq-card">
+            <h3>Tutorial als Quest?</h3>
+            <p>Ja. "Als Quest (+10)" klicken, wenn ein Ziel-Skill gesetzt ist.</p>
+          </div>
+          <div class="faq-card">
+            <h3>Kann ich das Design aendern?</h3>
+            <p>Ja. Farben, Cards und Layout sind klar im CSS getrennt.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="landing footer" data-auth="public">
+      <div class="landing-frame footer-layout">
+        <div class="footer-brand">
+          <span class="brand-dot"></span>
+          <span>Elevate</span>
+        </div>
+        <div class="footer-links">
+          <a href="#hero">Home</a>
+          <a href="#why">Warum</a>
+          <a href="#pro">Pro</a>
+          <a href="#faq">FAQ</a>
+          <button class="link-btn" type="button" data-legal="datenschutz">Datenschutz</button>
+          <button class="link-btn" type="button" data-legal="agb">AGB</button>
+          <button class="link-btn" type="button" data-legal="impressum">Impressum</button>
         </div>
       </div>
     </section>
 
     <!-- =========================
+         APP (PRIVATE)
+    ========================== --><!-- =========================
          APP (PRIVATE)
     ========================== --><!-- =========================
          APP (PRIVATE)
@@ -225,7 +219,7 @@
           <div class="side-brand">
             <span class="brand-dot"></span>
             <span class="side-label">Elevate</span>
-            <button class="icon-btn collapse-btn" id="toggleSidebar" type="button" aria-pressed="false" title="Sidebar einklappen">≡</button>
+            <button class="icon-btn collapse-btn" id="toggleSidebar" type="button" aria-pressed="false" title="Sidebar einklappen">=</button>
           </div>
 
           <nav class="side-nav" aria-label="App Navigation">
@@ -295,7 +289,7 @@
         <div class="app-header">
           <div>
             <h2 class="app-title" id="viewTitle">Dashboard</h2>
-            <p class="app-sub" id="viewSub">Dein Überblick. Starte mit einem Skill.</p>
+            <p class="app-sub" id="viewSub">Dein �berblick. Starte mit einem Skill.</p>
           </div>
 
           <div class="app-actions">
@@ -343,7 +337,7 @@
                 </div>
                 <strong>1</strong>
               </div>
-              <p class="hint" style="margin-top:8px;">10–20 Minuten Fokus reichen schon.</p>
+              <p class="hint" style="margin-top:8px;">10�20 Minuten Fokus reichen schon.</p>
             </div>
 
             <div class="card col-12">
@@ -375,7 +369,7 @@
                   <input class="range" id="skillProgress" type="range" min="0" max="100" value="50" />
                 </label>
 
-                <button class="btn primary" id="addSkillBtn" type="button">Hinzufügen</button>
+                <button class="btn primary" id="addSkillBtn" type="button">Hinzuf�gen</button>
               </div>
 
               <div class="divider"></div>
@@ -388,12 +382,12 @@
               <div class="card-head">
                 <h3>Quests</h3>
                 <div class="quest-controls">
-                  <select class="select" id="questSkillSelect" title="Skill wählen"></select>
+                  <select class="select" id="questSkillSelect" title="Skill w�hlen"></select>
                   <button class="btn" id="regenQuestsBtn" type="button">Neue Quests</button>
                 </div>
               </div>
 
-              <p class="hint" style="margin-top:0;">Schließe Quests ab → der ausgewählte Skill bekommt Progress.</p>
+              <p class="hint" style="margin-top:0;">Schlie�e Quests ab ? der ausgew�hlte Skill bekommt Progress.</p>
               <div class="quest-list" id="questList"></div>
               <p class="hint" id="questEmptyHint" style="display:none;">Erstelle zuerst einen Skill.</p>
             </div>
@@ -424,7 +418,7 @@
 
               <div class="skill-list" id="skillList"></div>
               <p class="hint" id="emptyHint" style="display:none; margin-top:10px;">
-                Noch keine Skills – füge oben links einen hinzu.
+                Noch keine Skills � f�ge oben links einen hinzu.
                 <button class="btn" id="emptyCta" type="button" style="margin-top:10px;">Skill erstellen</button>
               </p>
             </div>
@@ -437,12 +431,12 @@
             <div class="card-head">
               <div>
                 <h3 style="margin-bottom:2px;">Tutorials</h3>
-                <p class="hint" style="margin:0;">Suche & Filter. Optional: als Quest für einen Skill speichern.</p>
+                <p class="hint" style="margin:0;">Suche & Filter. Optional: als Quest f�r einen Skill speichern.</p>
               </div>
 
               <div class="tutorial-controls">
                 <select class="select" id="tutorialSkillTarget" title="Quest-Skill">
-                  <option value="">Quest-Skill: —</option>
+                  <option value="">Quest-Skill: �</option>
                 </select>
                 <input class="input small" id="tutorialSearch" placeholder="Suchen..." />
                 <select class="select" id="tutorialTag" title="Tag">
@@ -450,7 +444,7 @@
                   <option value="design">Design</option>
                   <option value="code">Code</option>
                   <option value="fitness">Fitness</option>
-                  <option value="productivity">Produktivität</option>
+                  <option value="productivity">Produktivit�t</option>
                 </select>
               </div>
             </div>
@@ -548,6 +542,9 @@
   <script src="./script.js"></script>
 </body>
 </html>
+
+
+
 
 
 

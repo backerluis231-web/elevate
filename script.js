@@ -66,74 +66,6 @@ const io = new IntersectionObserver((entries) => {
 }, { threshold: 0.15 });
 reveals.forEach(el => io.observe(el));
 
-/* ========= Landing Sequence ========= */
-function initLandingSequence(){
-  if (document.body.classList.contains("authed")) return;
-  const track = document.getElementById("seqTrack");
-  const stage = document.getElementById("seqStage");
-  if (!track || !stage) return;
-
-  const items = Array.from(stage.querySelectorAll(".seq-item"));
-  const words = Array.from(stage.querySelectorAll(".seq-title-ghost span"));
-  const prefersReduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  let lastY = window.scrollY;
-  let velocity = 0;
-  let current = 0;
-  let rafId = null;
-
-  function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
-  function smooth(t){ return t * t * (3 - 2 * t); }
-
-  function update(){
-    const vh = window.innerHeight || 1;
-    const rect = track.getBoundingClientRect();
-    const start = window.scrollY + rect.top;
-    const end = start + track.offsetHeight - vh;
-
-    const target = clamp((window.scrollY - start) / (end - start), 0, 1);
-    current += (target - current) * 0.06;
-
-    const nextY = window.scrollY;
-    velocity = (nextY - lastY) * 0.05 + velocity * 0.82;
-    lastY = nextY;
-    const drag = clamp(velocity / 70, -0.6, 0.6) * 16;
-
-    if (!prefersReduce) {
-      document.documentElement.style.setProperty("--p", current.toFixed(4));
-      document.documentElement.style.setProperty("--drag", drag.toFixed(2));
-    }
-
-    items.forEach((el) => {
-      const at = parseFloat(el.dataset.at || "0");
-      const range = parseFloat(el.dataset.range || "0.2");
-      const depth = parseFloat(el.dataset.depth || "1");
-      let t = 1 - Math.abs(current - at) / range;
-      t = clamp(t, 0, 1);
-      t = smooth(t);
-      const eased = prefersReduce ? 1 : t;
-      el.style.setProperty("--t", eased.toFixed(3));
-      el.style.setProperty("--drag", (drag * depth).toFixed(2));
-    });
-
-    words.forEach((w) => {
-      const shift = parseFloat(w.dataset.shift || "0");
-      w.style.setProperty("--shift", shift.toFixed(2));
-    });
-
-    const cta = document.querySelector(".seq-cta-link");
-    if (cta) {
-      const focus = clamp((current - 0.93) / 0.07, 0, 1);
-      const ctaProg = 0.4 + focus * 0.6;
-      cta.style.setProperty("--cta-progress", ctaProg.toFixed(2));
-    }
-
-    rafId = requestAnimationFrame(update);
-  }
-
-  if (rafId) cancelAnimationFrame(rafId);
-  rafId = requestAnimationFrame(update);
-}
 
 /* ========= Theme ========= */
 function applyTheme(theme){
@@ -1424,7 +1356,6 @@ async function boot(){
 }
 
 boot();
-initLandingSequence();
 
 
 
