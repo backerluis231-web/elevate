@@ -1,13 +1,13 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="de">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Elevate � Skill Tracker</title>
+  <title>Elevate - Skill Tracker</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./style.css" />
+  <link rel="stylesheet" href="./style.css?v=2" />
 </head>
 
 <body>
@@ -30,7 +30,7 @@
       <a href="#hero" data-auth="public">Home</a>
       <a href="#why" data-auth="public">Warum</a>
       <a href="#pro" data-auth="public">Pro</a>
-      <a class="pill" href="./login.html" data-auth="public">Loslegen</a>
+      <a class="pill" href="./coming-soon.html" data-auth="public">Loslegen</a>
 
       <!-- Private -->
       <button class="icon-btn" id="themeToggle" type="button" aria-label="Dark Mode umschalten" title="Dark Mode">
@@ -46,7 +46,7 @@
           </svg>
         </span>
       </button>
-      <button class="icon-btn mobile-menu-btn" id="mobileMenuBtn" data-auth="private" type="button" aria-label="Men�" title="Men�">
+      <button class="icon-btn mobile-menu-btn" id="mobileMenuBtn" data-auth="private" type="button" aria-label="Menï¿½" title="Menï¿½">
         <span class="icon-menu" aria-hidden="true">=</span>
       </button>
       <div class="top-xp" data-auth="private" title="XP Fortschritt">
@@ -70,57 +70,264 @@
         </div>
       </div>
     </section>
-    <section class="landing" id="why" data-auth="public">
-      <div class="landing-frame landing-panel">
+    <section class="landing" id="problem" data-auth="public">
+      <div class="landing-frame">
         <div class="section-head">
-          <p class="section-kicker">Warum Elevate</p>
-          <h2>Ein System, das still arbeitet und dich weiterzieht.</h2>
+          <p class="section-kicker">Problem -> Loesung</p>
+          <h2>Zu viele Ideen, zu wenig <span>Fortschritt</span>.</h2>
+          <p class="section-lead">Elevate bringt Ordnung in deinen Skill-Flow und macht naechste Schritte klar.</p>
         </div>
-        <div class="why-row">
-          <div class="why-card">
-            <h3>Klarheit im Kopf</h3>
-            <p>Du siehst sofort, was dran ist und was als naechstes lohnt.</p>
+        <div class="problem-grid">
+          <div class="problem-card card-outline">
+            <div class="card-icon">?</div>
+            <h3>Problem</h3>
+            <p>Notizen, To-dos und Tutorials sind verteilt. Du verlierst Energie, bevor du startest.</p>
+            <ul>
+              <li>Kein klarer Fokus</li>
+              <li>Zu viele offene Baustellen</li>
+              <li>Kein sichtbarer Fortschritt</li>
+            </ul>
           </div>
-          <div class="why-card">
-            <h3>Mini-Schritte, grosser Effekt</h3>
-            <p>Quests machen Lernen messbar und angenehm.</p>
+          <div class="solution-card card-glow">
+            <div class="card-icon">+</div>
+            <h3>Loesung</h3>
+            <p>Ein System, das Skills, Quests und Fortschritt in einem ruhigen Flow verbindet.</p>
+            <ul>
+              <li>Ein Ziel, ein naechster Schritt</li>
+              <li>Quests als klare Aktionen</li>
+              <li>Messbarer Fortschritt</li>
+            </ul>
           </div>
         </div>
-        <div class="why-note">Struktur - Ruhe - Momentum</div>
       </div>
     </section>
-    <section class="landing" id="flow" data-auth="public">
-      <div class="landing-frame landing-panel">
+    <section class="landing" id="features" data-auth="public">
+      <div class="landing-frame">
+        <div class="process-head">
+          <span class="process-pill">So funktioniert Elevate</span>
+          <h2>Ein <span>klarer Flow</span> in 4 Phasen.</h2>
+          <p>Kurz, fokussiert, sichtbar.</p>
+        </div>
+        <div class="feature-lab" aria-live="polite">
+          <div class="lab-body">
+            <div class="lab-tabs vertical" role="tablist" aria-label="Elevate Phasen">
+              <button class="lab-tab active" type="button" role="tab" aria-selected="true" data-orbit="signal">
+                <span class="lab-dot"></span>
+                <span>
+                  <strong>Signal</strong>
+                  <em>Was jetzt zählt</em>
+                </span>
+              </button>
+              <button class="lab-tab" type="button" role="tab" aria-selected="false" data-orbit="craft">
+                <span class="lab-dot"></span>
+                <span>
+                  <strong>Route</strong>
+                  <em>Levels & Quests</em>
+                </span>
+              </button>
+              <button class="lab-tab" type="button" role="tab" aria-selected="false" data-orbit="focus">
+                <span class="lab-dot"></span>
+                <span>
+                  <strong>Fokus</strong>
+                  <em>Ein Task</em>
+                </span>
+              </button>
+              <button class="lab-tab" type="button" role="tab" aria-selected="false" data-orbit="proof">
+                <span class="lab-dot"></span>
+                <span>
+                  <strong>Wachstum</strong>
+                  <em>XP & Streaks</em>
+                </span>
+              </button>
+            </div>
+            <div class="lab-panels">
+            <article class="lab-panel active" role="tabpanel" data-orbit="signal">
+              <div class="lab-visual" aria-hidden="true">
+                <div class="lab-target"></div>
+                <div class="lab-radar"></div>
+                <div class="lab-lines">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+              <div>
+                <h3>Signal finden</h3>
+                <p>Ein Ziel, ein klarer Start.</p>
+                <div class="lab-tags">
+                  <span>Prioritaet: Level 1</span>
+                  <span>Start: Setup</span>
+                </div>
+              </div>
+            </article>
+            <article class="lab-panel" role="tabpanel" data-orbit="craft">
+              <div class="lab-visual" aria-hidden="true">
+                <div class="lab-path">
+                  <span class="on"></span><span></span><span></span>
+                </div>
+                <div class="lab-bar"></div>
+                <div class="lab-chip">20 Min</div>
+              </div>
+              <div>
+                <h3>Route bauen</h3>
+                <p>Levels und kleine Quests.</p>
+                <div class="lab-tags">
+                  <span>Level 1</span>
+                  <span>20 Min · Mini-Quest</span>
+                </div>
+              </div>
+            </article>
+            <article class="lab-panel" role="tabpanel" data-orbit="focus">
+              <div class="lab-visual" aria-hidden="true">
+                <div class="lab-timer">18:00</div>
+                <div class="lab-stack">
+                  <span></span><span></span>
+                </div>
+              </div>
+              <div>
+                <h3>Fokus halten</h3>
+                <p>Ein Timer, eine Aufgabe.</p>
+                <div class="lab-tags">
+                  <span>Nur diese Quest aktiv</span>
+                  <span>Deep Focus</span>
+                </div>
+              </div>
+            </article>
+            <article class="lab-panel" role="tabpanel" data-orbit="proof">
+              <div class="lab-visual" aria-hidden="true">
+                <div class="lab-bars">
+                  <span style="height:40%"></span>
+                  <span style="height:62%"></span>
+                  <span style="height:78%"></span>
+                  <span style="height:92%"></span>
+                </div>
+              </div>
+              <div>
+                <h3>Wachstum sehen</h3>
+                <p>Fortschritt klar sichtbar.</p>
+                <div class="lab-tags">
+                  <span>Streak: 6 Tage</span>
+                  <span>+120 XP</span>
+                </div>
+              </div>
+            </article>
+            </div>
+          </div>
+        </div>
+        <div class="feature-actions compact">
+          <a class="btn primary" href="./coming-soon.html">Elevate starten</a>
+          <span class="feature-subnote">Kurze Einrichtung, sofortiger Flow.</span>
+        </div>
+      </div>
+    </section>
+    <section class="landing" id="benefits" data-auth="public">
+      <div class="landing-frame">
+        <div class="signal-grid">
+          <div class="signal-copy">
+            <p class="signal-kicker">Vorteile</p>
+            <h2>Ein System, das dich <span>traegt</span> und fokussiert.</h2>
+            <p>Du erhaeltst Klarheit, sichtbaren Fortschritt und leichten Antrieb ohne Overload.</p>
+          </div>
+          <div class="signal-lines">
+            <div class="signal-line">
+              <span>01</span>
+              <div>
+                <h3>Visuelle Linie</h3>
+                <p>Fortschritt wird messbar und motivierend.</p>
+              </div>
+            </div>
+            <div class="signal-line">
+              <span>02</span>
+              <div>
+                <h3>Kurze Entscheidungen</h3>
+                <p>Der naechste Schritt ist immer klar.</p>
+              </div>
+            </div>
+            <div class="signal-line">
+              <span>03</span>
+              <div>
+                <h3>Ritual statt Chaos</h3>
+                <p>Wenige Minuten, die langfristig wirken.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="landing" id="proof" data-auth="public">
+      <div class="landing-frame">
         <div class="section-head">
-          <p class="section-kicker">Ablauf</p>
-          <h2>Kurz. Ruhig. Wirksam.</h2>
+          <p class="section-kicker">Social Proof</p>
+          <h2>Vertraut von Teams, die <span>dranbleiben</span>.</h2>
+          <p class="section-lead">Studierende, Kreative und Selbststarter nutzen Elevate, um Fortschritt sichtbar zu machen.</p>
         </div>
-        <div class="flow-list">
-          <div class="flow-step">
-            <span>01</span>
-            <div>
-              <h3>Starten</h3>
-              <p>Loslegen klicken und direkt anfangen.</p>
+        <div class="proof-shell">
+          <div class="proof-left">
+            <div class="proof-stats">
+            <div class="proof-stat card-tilt">
+              <div class="proof-stat-value">+38%</div>
+              <p>Mehr Abschlussrate bei Quests</p>
+            </div>
+            <div class="proof-stat card-outline">
+              <div class="proof-stat-value">4.8/5</div>
+              <p>Durchschnittliche Bewertung</p>
+            </div>
+            <div class="proof-stat card-glow">
+              <div class="proof-stat-value">120+</div>
+              <p>Teams & Solo-Builder</p>
+            </div>
+            </div>
+            <div class="proof-logos">
+              <span>NordicLab</span>
+              <span>Studio 12</span>
+              <span>Lean Works</span>
+              <span>Arcade</span>
+              <span>Orbit</span>
+              <span>Loft</span>
             </div>
           </div>
-          <div class="flow-step">
-            <span>02</span>
-            <div>
-              <h3>Skill definieren</h3>
-              <p>Ziel setzen, Progress markieren.</p>
+          <div class="proof-right">
+            <div class="proof-tabs">
+              <input type="radio" name="proofTab" id="proofTab1" checked />
+              <input type="radio" name="proofTab" id="proofTab2" />
+              <input type="radio" name="proofTab" id="proofTab3" />
+              <div class="proof-tab-buttons">
+                <label for="proofTab1">Creators</label>
+                <label for="proofTab2">Teams</label>
+                <label for="proofTab3">Studierende</label>
+              </div>
+              <div class="proof-panels">
+                <div class="proof-panel proof-panel-1">
+                  <p>"Zum ersten Mal habe ich meine Skills nicht nur geplant, sondern wirklich aufgebaut."</p>
+                  <div class="proof-person">
+                    <div class="proof-avatar">LP</div>
+                    <div>
+                      <div class="proof-name">Lara P.</div>
+                      <div class="proof-role">Product Design</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="proof-panel proof-panel-2">
+                  <p>"Quests geben meinem Team genau den Schritt, den wir heute brauchen."</p>
+                  <div class="proof-person">
+                    <div class="proof-avatar">MK</div>
+                    <div>
+                      <div class="proof-name">Milan K.</div>
+                      <div class="proof-role">Tech Lead</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="proof-panel proof-panel-3">
+                  <p>"Endlich ist mein Lernplan nicht nur eine Liste, sondern ein Flow."</p>
+                  <div class="proof-person">
+                    <div class="proof-avatar">SG</div>
+                    <div>
+                      <div class="proof-name">Sina G.</div>
+                      <div class="proof-role">Studentin</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="flow-step">
-            <span>03</span>
-            <div>
-              <h3>Dranbleiben</h3>
-              <p>Quests erledigen, Progress steigt automatisch.</p>
-            </div>
-          </div>
-        </div>
-        <div class="hero-cta">
-          <a class="cta-link" href="./login.html">Jetzt loslegen</a>
-          <span>In weniger als 1 Minute bereit.</span>
         </div>
       </div>
     </section>
@@ -128,30 +335,73 @@
       <div class="landing-frame landing-panel">
         <div class="section-head">
           <p class="section-kicker">Pakete</p>
-          <h2>Free fuer Ruhe. Pro fuer Tempo.</h2>
+          <h2>Free fuer Ruhe. Pro fuer <span>Tempo</span>.</h2>
         </div>
-        <div class="price-row">
+        <div class="price-grid">
           <div class="price-card">
-            <h3>Free</h3>
-            <p>Einfach starten</p>
-            <ul>
+            <div class="price-top">
+              <span class="price-badge">Free</span>
+              <div>
+                <h3>Einfach starten</h3>
+                <p>Perfekt fuer den ersten Flow.</p>
+              </div>
+            </div>
+            <div class="price-amount">0.-</div>
+            <ul class="price-list">
               <li>Skill Tracker</li>
               <li>Quests (Basis)</li>
               <li>Tutorial Filter</li>
               <li>LocalStorage</li>
             </ul>
-            <div class="price-tag">0.-</div>
+            <a class="btn price-cta" href="./coming-soon.html">Kostenlos starten</a>
           </div>
-          <div class="price-card accent">
-            <h3>Pro</h3>
-            <p>Mehr Momentum</p>
-            <ul>
+          <div class="price-card featured">
+            <div class="price-top">
+              <span class="price-badge solid">Pro</span>
+              <div>
+                <h3>Mehr Momentum</h3>
+                <p>Mehr Tempo fuer deinen Fortschritt.</p>
+              </div>
+            </div>
+            <div class="price-amount">9.-</div>
+            <ul class="price-list">
               <li>Daily Quests + Streaks (spaeter)</li>
               <li>Level / XP (spaeter)</li>
               <li>Cloud Sync (spaeter)</li>
               <li>Prioritaet (spaeter)</li>
             </ul>
-            <div class="price-tag">9.-</div>
+            <a class="btn primary price-cta" href="./coming-soon.html">Pro sichern</a>
+          </div>
+        </div>
+        <div class="price-actions">
+          <a class="btn" href="#features">Demo ansehen</a>
+        </div>
+      </div>
+    </section>
+    <section class="landing" id="cta" data-auth="public">
+      <div class="landing-frame">
+        <div class="cta-panel">
+          <div class="cta-copy">
+            <p class="cta-kicker">Call-to-Action</p>
+            <h2>Starte in unter einer Minute.</h2>
+            <p>Setze ein Ziel, waehle eine Quest, sieh deinen Fortschritt wachsen.</p>
+            <div class="cta-points">
+              <span>Keine Kreditkarte</span>
+              <span>Setup in 60 Sekunden</span>
+              <span>100% lokal speicherbar</span>
+            </div>
+          </div>
+          <div class="cta-actions">
+            <a class="btn primary" href="./coming-soon.html">Kostenlos starten</a>
+            <a class="btn" href="#features">Features ansehen</a>
+            <div class="cta-mini-proof">
+              <div class="cta-avatars">
+                <span>LP</span>
+                <span>MK</span>
+                <span>SG</span>
+              </div>
+              <p>Bereits 120+ Nutzer starten heute.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -160,24 +410,44 @@
       <div class="landing-frame landing-panel">
         <div class="section-head">
           <p class="section-kicker">FAQ</p>
-          <h2>Kurz, ehrlich, klar.</h2>
+          <h2>Kurz, ehrlich, <span>klar</span>.</h2>
         </div>
-        <div class="faq-grid">
-          <div class="faq-card">
+        <div class="faq-layout">
+          <div class="faq-feature">
+            <p class="faq-tag">Gut zu wissen</p>
             <h3>Wo liegen meine Daten?</h3>
             <p>Lokal im Browser. Cloud Sync folgt spaeter.</p>
+            <div class="faq-foot">Du behieltst die volle Kontrolle.</div>
           </div>
-          <div class="faq-card">
-            <h3>Warum Quests?</h3>
-            <p>Kleine Schritte machen Fortschritt sichtbar.</p>
-          </div>
-          <div class="faq-card">
-            <h3>Tutorial als Quest?</h3>
-            <p>Ja. "Als Quest (+10)" klicken, wenn ein Ziel-Skill gesetzt ist.</p>
-          </div>
-          <div class="faq-card">
-            <h3>Kann ich das Design aendern?</h3>
-            <p>Ja. Farben, Cards und Layout sind klar im CSS getrennt.</p>
+          <div class="faq-accordion">
+            <details class="faq-item" open>
+              <summary>
+                <span class="faq-icon">01</span>
+                Warum Quests?
+              </summary>
+              <p>Kleine Schritte machen Fortschritt sichtbar und geben dir klare naechste Aktionen.</p>
+            </details>
+            <details class="faq-item">
+              <summary>
+                <span class="faq-icon">02</span>
+                Tutorial als Quest?
+              </summary>
+              <p>Ja. "Als Quest (+10)" klicken, wenn ein Ziel-Skill gesetzt ist.</p>
+            </details>
+            <details class="faq-item">
+              <summary>
+                <span class="faq-icon">03</span>
+                Kann ich das Design aendern?
+              </summary>
+              <p>Ja. Farben, Cards und Layout sind klar im CSS getrennt.</p>
+            </details>
+            <details class="faq-item">
+              <summary>
+                <span class="faq-icon">04</span>
+                Gibt es Cloud Sync?
+              </summary>
+              <p>Kommt spaeter. Aktuell liegt alles lokal und bleibt komplett bei dir.</p>
+            </details>
           </div>
         </div>
       </div>
@@ -289,7 +559,7 @@
         <div class="app-header">
           <div>
             <h2 class="app-title" id="viewTitle">Dashboard</h2>
-            <p class="app-sub" id="viewSub">Dein �berblick. Starte mit einem Skill.</p>
+            <p class="app-sub" id="viewSub">Dein ï¿½berblick. Starte mit einem Skill.</p>
           </div>
 
           <div class="app-actions">
@@ -337,7 +607,7 @@
                 </div>
                 <strong>1</strong>
               </div>
-              <p class="hint" style="margin-top:8px;">10�20 Minuten Fokus reichen schon.</p>
+              <p class="hint" style="margin-top:8px;">10ï¿½20 Minuten Fokus reichen schon.</p>
             </div>
 
             <div class="card col-12">
@@ -369,7 +639,7 @@
                   <input class="range" id="skillProgress" type="range" min="0" max="100" value="50" />
                 </label>
 
-                <button class="btn primary" id="addSkillBtn" type="button">Hinzuf�gen</button>
+                <button class="btn primary" id="addSkillBtn" type="button">Hinzufï¿½gen</button>
               </div>
 
               <div class="divider"></div>
@@ -382,12 +652,12 @@
               <div class="card-head">
                 <h3>Quests</h3>
                 <div class="quest-controls">
-                  <select class="select" id="questSkillSelect" title="Skill w�hlen"></select>
+                  <select class="select" id="questSkillSelect" title="Skill wï¿½hlen"></select>
                   <button class="btn" id="regenQuestsBtn" type="button">Neue Quests</button>
                 </div>
               </div>
 
-              <p class="hint" style="margin-top:0;">Schlie�e Quests ab ? der ausgew�hlte Skill bekommt Progress.</p>
+              <p class="hint" style="margin-top:0;">Schlieï¿½e Quests ab ? der ausgewï¿½hlte Skill bekommt Progress.</p>
               <div class="quest-list" id="questList"></div>
               <p class="hint" id="questEmptyHint" style="display:none;">Erstelle zuerst einen Skill.</p>
             </div>
@@ -418,7 +688,7 @@
 
               <div class="skill-list" id="skillList"></div>
               <p class="hint" id="emptyHint" style="display:none; margin-top:10px;">
-                Noch keine Skills � f�ge oben links einen hinzu.
+                Noch keine Skills ï¿½ fï¿½ge oben links einen hinzu.
                 <button class="btn" id="emptyCta" type="button" style="margin-top:10px;">Skill erstellen</button>
               </p>
             </div>
@@ -431,12 +701,12 @@
             <div class="card-head">
               <div>
                 <h3 style="margin-bottom:2px;">Tutorials</h3>
-                <p class="hint" style="margin:0;">Suche & Filter. Optional: als Quest f�r einen Skill speichern.</p>
+                <p class="hint" style="margin:0;">Suche & Filter. Optional: als Quest fï¿½r einen Skill speichern.</p>
               </div>
 
               <div class="tutorial-controls">
                 <select class="select" id="tutorialSkillTarget" title="Quest-Skill">
-                  <option value="">Quest-Skill: �</option>
+                  <option value="">Quest-Skill: ï¿½</option>
                 </select>
                 <input class="input small" id="tutorialSearch" placeholder="Suchen..." />
                 <select class="select" id="tutorialTag" title="Tag">
@@ -444,7 +714,7 @@
                   <option value="design">Design</option>
                   <option value="code">Code</option>
                   <option value="fitness">Fitness</option>
-                  <option value="productivity">Produktivit�t</option>
+                  <option value="productivity">Produktivitï¿½t</option>
                 </select>
               </div>
             </div>
@@ -530,7 +800,7 @@
         <button class="icon-btn" id="closeLegal" type="button" aria-label="Schliessen">x</button>
       </div>
       <div id="legalBody">
-        <p class="hint">Demo-Text. Bitte später mit echten Angaben ersetzen.</p>
+        <p class="hint">Demo-Text. Bitte spÃ¤ter mit echten Angaben ersetzen.</p>
       </div>
     </div>
   </div>
@@ -542,6 +812,7 @@
   <script src="./script.js"></script>
 </body>
 </html>
+
 
 
 

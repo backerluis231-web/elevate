@@ -55,16 +55,297 @@ function toast(title, sub){
 
 /* ========= Landing Reveal ========= */
 document.documentElement.classList.add("js");
+const autoReveal = document.querySelectorAll(
+  "body:not(.authed) .section-head, " +
+  "body:not(.authed) .problem-card, " +
+  "body:not(.authed) .solution-card, " +
+  "body:not(.authed) .process-head, " +
+  "body:not(.authed) .process-step, " +
+  "body:not(.authed) .process-demo, " +
+  "body:not(.authed) .signal-copy, " +
+  "body:not(.authed) .signal-line, " +
+  "body:not(.authed) .proof-stat, " +
+  "body:not(.authed) .proof-panel, " +
+  "body:not(.authed) .proof-logos, " +
+  "body:not(.authed) .proof-tabs, " +
+  "body:not(.authed) .proof-tab-buttons, " +
+  "body:not(.authed) .price-card, " +
+  "body:not(.authed) .price-mini, " +
+  "body:not(.authed) .price-tag, " +
+  "body:not(.authed) .faq-feature, " +
+  "body:not(.authed) .faq-item, " +
+  "body:not(.authed) .cta-panel, " +
+  "body:not(.authed) .cta-copy, " +
+  "body:not(.authed) .cta-points, " +
+  "body:not(.authed) .cta-actions, " +
+  "body:not(.authed) .cta-mini-proof, " +
+  "body:not(.authed) .footer-layout"
+);
+autoReveal.forEach(el => el.classList.add("reveal"));
 const reveals = document.querySelectorAll(".reveal");
 const io = new IntersectionObserver((entries) => {
   for (const e of entries) {
-    if (e.isIntersecting) {
-      e.target.classList.add("show");
-      io.unobserve(e.target);
+    e.target.classList.toggle("show", e.isIntersecting);
+  }
+}, { threshold: 0.18, rootMargin: "0px 0px -8% 0px" });
+reveals.forEach(el => io.observe(el));
+
+/* ========= Hero Particles (public) ========= */
+function initHeroParticles(){
+  if (document.body.classList.contains("authed")) return;
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const wrap = document.querySelector(".hero-sentence-wrap");
+  if (!wrap || wrap.querySelector(".hero-particles")) return;
+
+  const canvas = document.createElement("canvas");
+  canvas.className = "hero-particles";
+  wrap.appendChild(canvas);
+  const ctx = canvas.getContext("2d");
+  let w = 0;
+  let h = 0;
+  let dpr = window.devicePixelRatio || 1;
+  let target = { x: 0, y: 0, r: 24 };
+  let targetRect = null;
+  const targetEl = document.querySelector(".hero-sentence span");
+
+  function updateTarget(){
+    const rect = wrap.getBoundingClientRect();
+    w = rect.width;
+    h = rect.height;
+    dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    canvas.style.width = `${w}px`;
+    canvas.style.height = `${h}px`;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    if (targetEl) {
+      const t = targetEl.getBoundingClientRect();
+      const cs = getComputedStyle(targetEl);
+      const em = parseFloat(cs.fontSize) || 16;
+      const parentLeft = t.left - rect.left;
+      const parentRight = parentLeft + t.width;
+      const parentTop = t.top - rect.top;
+      const parentBottom = t.bottom - rect.top;
+
+      function num(val){
+        const n = Number.parseFloat(val);
+        return Number.isFinite(n) ? n : null;
+      }
+      function pseudoBox(ps){
+        const height = num(ps.height);
+        const bottomOffset = num(ps.bottom);
+        if (height == null || bottomOffset == null) return null;
+        const bottom = parentBottom - bottomOffset;
+        return { top: bottom - height, bottom };
+      }
+
+      const before = getComputedStyle(targetEl, "::before");
+      const after = getComputedStyle(targetEl, "::after");
+
+      const leftPad = Math.max(
+        0,
+        -(num(before.left) ?? 0),
+        -(num(after.left) ?? 0),
+        0.2 * em
+      );
+      const rightPad = Math.max(
+        0,
+        -(num(before.right) ?? 0),
+        -(num(after.right) ?? 0),
+        0.2 * em
+      );
+
+      const beforeRect = pseudoBox(before);
+      const afterRect = pseudoBox(after);
+      let top = parentTop + 0.12 * em;
+      let bottom = top + Math.max(18, 0.9 * em);
+      if (beforeRect || afterRect) {
+        top = Math.min(beforeRect?.top ?? parentTop, afterRect?.top ?? parentTop);
+        bottom = Math.max(beforeRect?.bottom ?? parentBottom, afterRect?.bottom ?? parentBottom);
+      }
+
+      const left = parentLeft - leftPad;
+      const right = parentRight + rightPad;
+      if (targetEl.matches(".hero-sentence span")) {
+        const offset = -0.02 * em;
+        const height = Math.max(10, 0.5 * em);
+        targetRect = { left, top: bottom + offset, right, bottom: bottom + offset + height };
+        target.x = (left + right) / 2 + 0.65 * em;
+        target.y = (targetRect.top + targetRect.bottom) / 2;
+      } else {
+        targetRect = { left, top, right, bottom };
+        target.x = (left + right) / 2;
+        target.y = (top + bottom) / 2;
+      }
+      target.r = Math.max(10, Math.min(20, (right - left) * 0.2));
+    } else {
+      target.x = w / 2;
+      target.y = h / 2;
+      target.r = Math.max(18, Math.min(w, h) * 0.12);
+      targetRect = null;
     }
   }
-}, { threshold: 0.15 });
-reveals.forEach(el => io.observe(el));
+  updateTarget();
+  window.addEventListener("resize", updateTarget);
+
+  const particles = [];
+  let lastTime = performance.now();
+  let spawnAcc = 0;
+
+  function parseRgb(str, fallback){
+    const parts = str.split(",").map(s => Number(s.trim()));
+    if (parts.length === 3 && parts.every(n => Number.isFinite(n))) return parts;
+    return fallback;
+  }
+
+  function spawn(){
+    const pad = 16;
+    const side = Math.floor(Math.random() * 4);
+    let x = 0;
+    let y = 0;
+    if (side === 0) { x = Math.random() * w; y = -pad; }
+    if (side === 1) { x = w + pad; y = Math.random() * h; }
+    if (side === 2) { x = Math.random() * w; y = h + pad; }
+    if (side === 3) { x = -pad; y = Math.random() * h; }
+    const dx = target.x - x;
+    const dy = target.y - y;
+    const dist = Math.hypot(dx, dy) || 1;
+    const speed = 46 + Math.random() * 60;
+    const vx = (dx / dist) * speed;
+    const vy = (dy / dist) * speed;
+    particles.push({
+      x,
+      y,
+      vx,
+      vy,
+      size: 1.1 + Math.random() * 1.2,
+      color: Math.floor(Math.random() * 3)
+    });
+  }
+
+  function tick(now){
+    updateTarget();
+    const dt = Math.min(0.033, (now - lastTime) / 1000);
+    lastTime = now;
+    spawnAcc += dt;
+    while (spawnAcc > 0.08) {
+      spawn();
+      spawnAcc -= 0.08;
+    }
+
+    ctx.clearRect(0, 0, w, h);
+
+    const style = getComputedStyle(document.body);
+    const accent = parseRgb(style.getPropertyValue("--accent-rgb") || "14,165,233", [14, 165, 233]);
+    const accent2 = parseRgb(style.getPropertyValue("--accent2-rgb") || "125,211,252", [125, 211, 252]);
+    const neutral = [31, 35, 40];
+    const colors = [accent, accent2, neutral];
+
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      const dx = target.x - p.x;
+      const dy = target.y - p.y;
+      const dist = Math.hypot(dx, dy) || 1;
+      const pull = Math.min(120, 30 + (1 - Math.min(dist / Math.max(w, h), 1)) * 120);
+      p.vx += (dx / dist) * pull * dt;
+      p.vy += (dy / dist) * pull * dt;
+      p.vx *= 0.985;
+      p.vy *= 0.985;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+
+      const distAfter = Math.hypot(target.x - p.x, target.y - p.y);
+      const maxDist = Math.max(w, h) * 0.75;
+      const alpha = Math.max(0, Math.min(1, distAfter / maxDist));
+      const opacity = 0.2 + alpha * 0.8;
+
+      const hitRect = targetRect
+        ? (p.x >= targetRect.left && p.x <= targetRect.right && p.y >= targetRect.top && p.y <= targetRect.bottom)
+        : false;
+      if (hitRect || distAfter < target.r) {
+        particles.splice(i, 1);
+        continue;
+      }
+
+      const c = colors[p.color];
+      ctx.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${opacity})`;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    requestAnimationFrame(tick);
+  }
+
+  requestAnimationFrame(tick);
+}
+initHeroParticles();
+
+/* ========= Feature Showcase ========= */
+function initFeatureShowcase(){
+  const tabs = Array.from(document.querySelectorAll(".feature-tab"));
+  if (!tabs.length) return;
+  const story = document.querySelector(".feature-story");
+  const panels = Array.from(document.querySelectorAll(".story-panel"));
+  if (!story || !panels.length) return;
+
+  function setActive(tab){
+    tabs.forEach(t => {
+      const isActive = t === tab;
+      t.classList.toggle("active", isActive);
+      t.setAttribute("aria-selected", isActive ? "true" : "false");
+    });
+    const key = tab.dataset.story;
+    panels.forEach(panel => {
+      panel.classList.toggle("active", panel.dataset.story === key);
+    });
+    story.classList.remove("is-swapping");
+    void story.offsetWidth;
+    story.classList.add("is-swapping");
+  }
+
+  tabs.forEach(tab => {
+    tab.addEventListener("click", () => setActive(tab));
+    tab.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        setActive(tab);
+      }
+    });
+  });
+}
+initFeatureShowcase();
+
+/* ========= Orbit Showcase ========= */
+function initOrbitShowcase(){
+  const steps = Array.from(document.querySelectorAll(".lab-tab"));
+  const panels = Array.from(document.querySelectorAll(".lab-panel"));
+  if (!steps.length || !panels.length) return;
+
+  function setActive(step){
+    steps.forEach(btn => {
+      const isActive = btn === step;
+      btn.classList.toggle("active", isActive);
+      btn.setAttribute("aria-selected", isActive ? "true" : "false");
+    });
+    const key = step.dataset.orbit;
+    panels.forEach(panel => {
+      panel.classList.toggle("active", panel.dataset.orbit === key);
+    });
+  }
+
+  steps.forEach(step => {
+    step.addEventListener("click", () => setActive(step));
+    step.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        setActive(step);
+      }
+    });
+  });
+}
+initOrbitShowcase();
 
 
 /* ========= Theme ========= */
@@ -1346,6 +1627,175 @@ function renderTutorials(){
 
 tutorialSearch?.addEventListener("input", renderTutorials);
 tutorialTag?.addEventListener("change", renderTutorials);
+
+/* ========= Coming Soon ========= */
+const comingSoonForm = $("comingSoonForm");
+const comingSoonEmail = $("comingSoonEmail");
+comingSoonForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const email = (comingSoonEmail?.value || "").trim();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    toast("E-Mail fehlt", "Bitte eine gueltige E-Mail eingeben.");
+    return;
+  }
+
+  fetch("/api/coming-soon", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email })
+  })
+    .then((res) => {
+      if (!res.ok) throw new Error("request failed");
+      return res.json();
+    })
+    .then(() => {
+      toast("Danke!", "Wir benachrichtigen dich sobald Elevate live ist.");
+      comingSoonForm.reset();
+    })
+    .catch(() => {
+      let list = [];
+      const stored = localStorage.getItem("comingSoonEmails");
+      if (stored) {
+        try {
+          list = JSON.parse(stored);
+        } catch {
+          list = [];
+        }
+      }
+      if (!Array.isArray(list)) {
+        list = [];
+      }
+      if (!list.includes(email)) {
+        list.push(email);
+        localStorage.setItem("comingSoonEmails", JSON.stringify(list));
+      }
+      toast("Danke!", "Lokale Speicherung aktiv. Wir geben dir Bescheid.");
+      comingSoonForm.reset();
+    });
+});
+
+/* ========= Admin ========= */
+const adminList = $("adminList");
+const adminRefresh = $("adminRefresh");
+const adminExport = $("adminExport");
+const adminLogin = $("adminLogin");
+const adminApp = $("adminApp");
+const adminLoginForm = $("adminLoginForm");
+const adminUser = $("adminUser");
+const adminPass = $("adminPass");
+const adminLogout = $("adminLogout");
+
+function formatDate(iso){
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleString("de-DE", { dateStyle: "medium", timeStyle: "short" });
+}
+
+function renderAdminRows(list){
+  if (!adminList) return;
+  if (!list.length) {
+    adminList.innerHTML = `
+      <tr>
+        <td colspan="2" class="admin-empty">Noch keine Anmeldungen.</td>
+      </tr>
+    `;
+    return;
+  }
+  adminList.innerHTML = list.map((entry) => `
+    <tr>
+      <td>${escapeHTML(entry.email || "")}</td>
+      <td>${escapeHTML(formatDate(entry.createdAt || ""))}</td>
+    </tr>
+  `).join("");
+}
+
+async function loadAdminList(){
+  if (!adminList) return;
+  try {
+    const res = await fetch("/api/coming-soon");
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error("failed");
+    renderAdminRows(data.data || []);
+  } catch {
+    toast("Fehler", "Admin Liste konnte nicht geladen werden.");
+  }
+}
+
+function setAdminView(isAuthed){
+  adminLogin?.classList.toggle("hidden", isAuthed);
+  adminApp?.classList.toggle("hidden", !isAuthed);
+}
+
+async function checkAdmin(){
+  if (!document.body.classList.contains("admin-page")) return;
+  try {
+    const res = await fetch("/api/admin/me");
+    const data = await res.json();
+    const authed = Boolean(data?.admin);
+    setAdminView(authed);
+    if (authed) loadAdminList();
+  } catch {
+    setAdminView(false);
+  }
+}
+
+function exportAdminCsv(){
+  if (!adminList) return;
+  const rows = Array.from(adminList.querySelectorAll("tr"))
+    .map((tr) => Array.from(tr.querySelectorAll("td")).map((td) => td.textContent || "").slice(0, 2));
+  if (!rows.length || (rows.length === 1 && rows[0][0] === "Noch keine Anmeldungen.")) {
+    toast("Keine Daten", "Noch keine Eintraege zum Export.");
+    return;
+  }
+  const csv = ["email,created_at"]
+    .concat(rows.map((r) => `"${(r[0] || "").replaceAll('"', '""')}","${(r[1] || "").replaceAll('"', '""')}"`))
+    .join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "early-access.csv";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+adminRefresh?.addEventListener("click", loadAdminList);
+adminExport?.addEventListener("click", exportAdminCsv);
+adminLoginForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const username = (adminUser?.value || "").trim();
+  const password = (adminPass?.value || "").trim();
+  if (!username || !password) {
+    toast("Fehlende Daten", "Username und Passwort eingeben.");
+    return;
+  }
+  try {
+    const res = await fetch("/api/admin/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password })
+    });
+    if (!res.ok) throw new Error("login failed");
+    setAdminView(true);
+    adminLoginForm.reset();
+    loadAdminList();
+  } catch {
+    toast("Login fehlgeschlagen", "Bitte Daten pruefen.");
+  }
+});
+adminLogout?.addEventListener("click", async () => {
+  try {
+    await fetch("/api/admin/logout", { method: "POST" });
+  } finally {
+    setAdminView(false);
+  }
+});
+if (document.body.classList.contains("admin-page")) {
+  checkAdmin();
+}
 
 /* ========= Boot ========= */
 async function boot(){

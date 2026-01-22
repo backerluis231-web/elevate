@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Elevate - Coming Soon</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body class="login-page coming-soon-page">
+  <div class="bg" aria-hidden="true">
+    <div class="blob one"></div>
+    <div class="blob two"></div>
+    <div class="blob three"></div>
+  </div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-dot"></span>
+      <span>Elevate</span>
+    </div>
+
+    <nav class="topnav">
+      <a href="./index.html">Home</a>
+      <a href="./index.html#why">Warum</a>
+      <a href="./index.html#pro">Pro</a>
+      <button class="icon-btn" id="themeToggle" type="button" aria-label="Dark Mode umschalten" title="Dark Mode">
+        <span class="icon-sun" aria-hidden="true">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/>
+            <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.5 4.5l2.1 2.1M17.4 17.4l2.1 2.1M4.5 19.5l2.1-2.1M17.4 6.6l2.1-2.1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="icon-moon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 14.5A8.5 8.5 0 1 1 9.5 3a7 7 0 0 0 11.5 11.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          </svg>
+        </span>
+      </button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero coming-soon">
+      <div class="wrap cs-grid">
+        <div class="cs-copy reveal">
+          <div class="hero-eyebrow"><span class="soon-pill">Phase 01</span> Coming Soon</div>
+          <h1 class="hero-title">
+            <span class="hero-line">Elevate</span>
+            <span class="hero-line hero-title-accent">kommt bald</span>
+          </h1>
+          <p class="sub">Das Skills Dashboard ist im Build. Quests, XP-Flow und Streaks gehen als naechstes live.</p>
+          <div class="cs-tags">
+            <span>Skills Dashboard</span>
+            <span>Quest Flow</span>
+            <span>XP + Streaks</span>
+          </div>
+          <div class="cs-timeline">
+            <div class="cs-step active">
+              <div class="cs-dot"></div>
+              <div>
+                <strong>Phase 1 Launch</strong>
+                <p>Der erste Launch startet bald fuer die Community.</p>
+              </div>
+            </div>
+            <div class="cs-step">
+              <div class="cs-dot"></div>
+              <div>
+                <strong>Phase 2 Updates</strong>
+                <p>Updates mit neuen Features und Verbesserungen.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cs-panel reveal">
+          <div class="card cs-card">
+            <div class="form">
+              <div class="cs-card-head">
+                <div class="cs-badge">Early Access</div>
+                <h2>Bleib im Loop.</h2>
+                <p class="hint" style="margin-top:0;">Wir schicken dir ein Update, sobald Elevate freigeschaltet ist.</p>
+              </div>
+              <form id="comingSoonForm" class="coming-soon-form">
+                <label class="label">
+                  E-Mail
+                  <input class="input" id="comingSoonEmail" type="email" placeholder="name@domain.com" required />
+                </label>
+                <button class="btn primary" type="submit">Benachrichtigt mich</button>
+                <div class="cs-meta">
+                  <span>Kein Spam.</span>
+                  <a class="subtle-link" href="./index.html">Zur&uuml;ck zur Startseite</a>
+                </div>
+              </form>
+            </div>
+          </div>
+          <div class="cs-metric">
+            <div>
+              <div class="cs-metric-title">Release Radar</div>
+              <div class="cs-progress">
+                <span style="width:62%"></span>
+              </div>
+            </div>
+            <div class="cs-metric-note">Build in Progress</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toasts" id="toasts" aria-live="polite" aria-atomic="true"></div>
+  <script src="./script.js"></script>
+</body>
+</html>

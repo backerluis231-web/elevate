@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Elevate - Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body class="admin-page">
+  <div class="bg" aria-hidden="true">
+    <div class="blob one"></div>
+    <div class="blob two"></div>
+    <div class="blob three"></div>
+  </div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-dot"></span>
+      <span>Elevate Admin</span>
+    </div>
+
+    <nav class="topnav">
+      <a href="./index.html">Home</a>
+      <a href="./coming-soon.html">Coming Soon</a>
+      <button class="icon-btn" id="themeToggle" type="button" aria-label="Dark Mode umschalten" title="Dark Mode">
+        <span class="icon-sun" aria-hidden="true">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/>
+            <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.5 4.5l2.1 2.1M17.4 17.4l2.1 2.1M4.5 19.5l2.1-2.1M17.4 6.6l2.1-2.1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="icon-moon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 14.5A8.5 8.5 0 1 1 9.5 3a7 7 0 0 0 11.5 11.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          </svg>
+        </span>
+      </button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="section admin-section">
+      <div class="wrap admin-wrap">
+        <div class="admin-head">
+          <div class="hero-eyebrow">Early Access</div>
+          <h1 class="hero-title">
+            <span class="hero-line">Anmeldungen</span>
+          </h1>
+          <p class="sub">Hier siehst du alle E-Mails, die sich fuer Early Access eingetragen haben.</p>
+        </div>
+
+        <div class="admin-login card" id="adminLogin">
+          <div class="form">
+            <div class="cs-card-head">
+              <div class="cs-badge">Admin Login</div>
+              <h2>Bitte anmelden.</h2>
+              <p class="hint" style="margin-top:0;">Username und Passwort eingeben.</p>
+            </div>
+            <form id="adminLoginForm" class="admin-login-form">
+              <label class="label">
+                Username
+                <input class="input" id="adminUser" type="text" placeholder="username" required />
+              </label>
+              <label class="label">
+                Passwort
+                <input class="input" id="adminPass" type="password" placeholder="********" required />
+              </label>
+              <button class="btn primary" type="submit">Login</button>
+            </form>
+          </div>
+        </div>
+
+        <div class="admin-card card hidden" id="adminApp">
+          <div class="admin-actions">
+            <button class="btn" type="button" id="adminRefresh">Aktualisieren</button>
+            <button class="btn primary" type="button" id="adminExport">Export CSV</button>
+            <button class="btn ghost-btn" type="button" id="adminLogout">Logout</button>
+          </div>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>E-Mail</th>
+                  <th>Erstellt</th>
+                </tr>
+              </thead>
+              <tbody id="adminList">
+                <tr>
+                  <td colspan="2" class="admin-empty">Noch keine Anmeldungen.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toasts" id="toasts" aria-live="polite" aria-atomic="true"></div>
+  <script src="./script.js"></script>
+</body>
+</html>

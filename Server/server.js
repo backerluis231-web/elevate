@@ -2,9 +2,17 @@ import "dotenv/config";
 import express from "express";
 import session from "express-session";
 import { Issuer, generators } from "openid-client";
+import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const app = express();
 const PORT = 3000;
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const dataDir = path.join(__dirname, "data");
+const comingSoonPath = path.join(dataDir, "coming-soon.json");
+const ADMIN_USER = process.env.ADMIN_USER || "largfrg";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "7f89#elevate@admin";
 
 app.use(session({
   secret: process.env.SESSION_SECRET,
@@ -16,6 +24,14 @@ app.use(session({
     secure: false // in production: true (HTTPS)
   }
 }));
+app.use(express.json());
+
+function requireAdmin(req, res, next) {
+  if (!req.session?.admin) {
+    return res.status(401).json({ ok: false, message: "Unauthorized" });
+  }
+  return next();
+}
 
 // ---- Discover OIDC providers (Google + Microsoft) ----
 const googleIssuer = await Issuer.discover("https://accounts.google.com");
@@ -113,6 +129,62 @@ app.get("/api/me", (req, res) => {
 // ---- Logout ----
 app.post("/auth/logout", (req, res) => {
   req.session.destroy(() => res.json({ ok: true }));
+});
+
+// ---- API: coming soon signup ----
+app.post("/api/coming-soon", async (req, res) => {
+  const email = String(req.body?.email || "").trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ ok: false, message: "Invalid email" });
+  }
+
+  await fs.mkdir(dataDir, { recursive: true });
+
+  let list = [];
+  try {
+    const raw = await fs.readFile(comingSoonPath, "utf8");
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) list = parsed;
+  } catch {
+    list = [];
+  }
+
+  if (!list.some((entry) => entry?.email === email)) {
+    list.push({ email, createdAt: new Date().toISOString() });
+    await fs.writeFile(comingSoonPath, JSON.stringify(list, null, 2), "utf8");
+  }
+
+  return res.json({ ok: true });
+});
+
+app.get("/api/coming-soon", requireAdmin, async (_req, res) => {
+  try {
+    const raw = await fs.readFile(comingSoonPath, "utf8");
+    const parsed = JSON.parse(raw);
+    const list = Array.isArray(parsed) ? parsed : [];
+    return res.json({ ok: true, data: list });
+  } catch {
+    return res.json({ ok: true, data: [] });
+  }
+});
+
+app.post("/api/admin/login", (req, res) => {
+  const user = String(req.body?.username || "");
+  const pass = String(req.body?.password || "");
+  if (user === ADMIN_USER && pass === ADMIN_PASSWORD) {
+    req.session.admin = true;
+    return res.json({ ok: true });
+  }
+  return res.status(401).json({ ok: false, message: "Invalid credentials" });
+});
+
+app.post("/api/admin/logout", (req, res) => {
+  req.session.admin = false;
+  res.json({ ok: true });
+});
+
+app.get("/api/admin/me", (req, res) => {
+  res.json({ ok: true, admin: Boolean(req.session?.admin) });
 });
 
 // Serve your static files (index.html, css, js) from project root
