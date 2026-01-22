@@ -2,6 +2,6 @@
   "name": "elevate-web",
   "private": true,
   "dependencies": {
-    "@vercel/kv": "^2.0.0"
+    "@supabase/supabase-js": "^2.49.1"
   }
 }
