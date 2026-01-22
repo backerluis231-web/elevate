@@ -13,9 +13,11 @@ const dataDir = path.join(__dirname, "data");
 const comingSoonPath = path.join(dataDir, "coming-soon.json");
 const ADMIN_USER = process.env.ADMIN_USER || "largfrg";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "7f89#elevate@admin";
+const SESSION_SECRET = process.env.SESSION_SECRET || "dev-session-secret";
+const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
 
 app.use(session({
-  secret: process.env.SESSION_SECRET,
+  secret: SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -34,24 +36,38 @@ function requireAdmin(req, res, next) {
 }
 
 // ---- Discover OIDC providers (Google + Microsoft) ----
-const googleIssuer = await Issuer.discover("https://accounts.google.com");
-const msIssuer = await Issuer.discover(
-  `https://login.microsoftonline.com/${process.env.MICROSOFT_TENANT}/v2.0/.well-known/openid-configuration`
-);
+let googleClient = null;
+let msClient = null;
 
-const googleClient = new googleIssuer.Client({
-  client_id: process.env.GOOGLE_CLIENT_ID,
-  client_secret: process.env.GOOGLE_CLIENT_SECRET,
-  redirect_uris: [`${process.env.BASE_URL}/auth/google/callback`],
-  response_types: ["code"],
-});
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  try {
+    const googleIssuer = await Issuer.discover("https://accounts.google.com");
+    googleClient = new googleIssuer.Client({
+      client_id: process.env.GOOGLE_CLIENT_ID,
+      client_secret: process.env.GOOGLE_CLIENT_SECRET,
+      redirect_uris: [`${BASE_URL}/auth/google/callback`],
+      response_types: ["code"],
+    });
+  } catch (err) {
+    console.warn("Google OAuth disabled:", err?.message || err);
+  }
+}
 
-const msClient = new msIssuer.Client({
-  client_id: process.env.MICROSOFT_CLIENT_ID,
-  client_secret: process.env.MICROSOFT_CLIENT_SECRET,
-  redirect_uris: [`${process.env.BASE_URL}/auth/microsoft/callback`],
-  response_types: ["code"],
-});
+if (process.env.MICROSOFT_TENANT && process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET) {
+  try {
+    const msIssuer = await Issuer.discover(
+      `https://login.microsoftonline.com/${process.env.MICROSOFT_TENANT}/v2.0/.well-known/openid-configuration`
+    );
+    msClient = new msIssuer.Client({
+      client_id: process.env.MICROSOFT_CLIENT_ID,
+      client_secret: process.env.MICROSOFT_CLIENT_SECRET,
+      redirect_uris: [`${BASE_URL}/auth/microsoft/callback`],
+      response_types: ["code"],
+    });
+  } catch (err) {
+    console.warn("Microsoft OAuth disabled:", err?.message || err);
+  }
+}
 
 // Helper: start auth with PKCE + state + nonce
 function startAuth(req, res, client, provider, scope) {
@@ -75,10 +91,12 @@ function startAuth(req, res, client, provider, scope) {
 
 // ---- Routes: Start login ----
 app.get("/auth/google", (req, res) => {
+  if (!googleClient) return res.status(503).send("Google OAuth not configured.");
   startAuth(req, res, googleClient, "google", "openid email profile");
 });
 
 app.get("/auth/microsoft", (req, res) => {
+  if (!msClient) return res.status(503).send("Microsoft OAuth not configured.");
   // minimal scopes for sign-in:
   startAuth(req, res, msClient, "microsoft", "openid profile email");
 });
@@ -86,13 +104,14 @@ app.get("/auth/microsoft", (req, res) => {
 // ---- Routes: Callback ----
 async function handleCallback(req, res, client, provider) {
   try {
+    if (!client) return res.status(503).send("OAuth not configured.");
     const data = req.session[provider];
     if (!data) return res.status(400).send("Missing session state");
 
     const params = client.callbackParams(req);
 
     const tokenSet = await client.callback(
-      `${process.env.BASE_URL}/auth/${provider}/callback`,
+      `${BASE_URL}/auth/${provider}/callback`,
       params,
       { state: data.state, nonce: data.nonce, code_verifier: data.code_verifier }
     );
