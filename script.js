@@ -5,9 +5,12 @@
 
 const LS = {
   theme: "elevate_theme",
-  skills: "elevate_skills",
+  skills: "elevate_skills", // legacy
+  skillCatalog: "elevate_skill_catalog",
+  userSkills: "elevate_user_skills",
+  localUserId: "elevate_local_user_id",
   view: "elevate_view",
-  quests: "elevate_quests", // { [skillId]: Quest[] }
+  quests: "elevate_quests", // { [userSkillId]: Quest[] }
   lastLevel: "elevate_last_level",
   sidebarCollapsed: "elevate_sidebar_collapsed"
 };
@@ -31,6 +34,20 @@ function uid(){
   return (crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + "_" + Math.random().toString(16).slice(2);
 }
 function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+let currentUser = null;
+function setCurrentUser(user){ currentUser = user || null; }
+function getLocalUserId(){
+  let id = localStorage.getItem(LS.localUserId);
+  if (!id) {
+    id = uid();
+    localStorage.setItem(LS.localUserId, id);
+  }
+  return id;
+}
+function getCurrentUserId(){
+  return currentUser?.id || getLocalUserId();
+}
 
 /* ========= Toasts ========= */
 const toastsEl = $("toasts");
@@ -463,20 +480,24 @@ async function checkAuth() {
   try {
     if (!supabaseClient) {
       document.body.classList.remove("authed");
+      setCurrentUser(null);
       return null;
     }
     const { data, error } = await supabaseClient.auth.getSession();
     if (error || !data?.session) {
       document.body.classList.remove("authed");
+      setCurrentUser(null);
       return null;
     }
     const user = data.session.user;
     document.body.classList.add("authed");
+    setCurrentUser(user);
     displayUser(user);
     syncProfile(user);
     return user;
   } catch {
     document.body.classList.remove("authed");
+    setCurrentUser(null);
     return null;
   }
 }
@@ -577,6 +598,7 @@ async function logout(){
       if (key.startsWith("sb-")) localStorage.removeItem(key);
     });
   } catch {}
+  setCurrentUser(null);
   location.href = "/";
 }
 
@@ -621,6 +643,7 @@ function initAppUI(){
 supabaseClient?.auth.onAuthStateChange((_event, session) => {
   if (session?.user) {
     document.body.classList.add("authed");
+    setCurrentUser(session.user);
     displayUser(session.user);
     syncProfile(session.user);
     initAppUI();
@@ -629,20 +652,95 @@ supabaseClient?.auth.onAuthStateChange((_event, session) => {
     }
   } else {
     document.body.classList.remove("authed");
+    setCurrentUser(null);
   }
 });
 
 /* ========= Storage init ========= */
 function initStorageOnce(){
-  if (!localStorage.getItem(LS.skills)) {
-    saveJSON(LS.skills, [
-      { id: uid(), name: "JavaScript", progress: 40 },
-      { id: uid(), name: "Web Design", progress: 60 },
-    ]);
+  migrateLegacySkills();
+
+  if (!localStorage.getItem(LS.skillCatalog)) {
+    saveJSON(LS.skillCatalog, []);
+  }
+  if (!localStorage.getItem(LS.userSkills)) {
+    saveJSON(LS.userSkills, []);
   }
   if (!localStorage.getItem(LS.quests)) {
     saveJSON(LS.quests, {}); // mapping
   }
+
+  const userId = getCurrentUserId();
+  const userSkills = getUserSkillRows().filter(row => row.userId === userId);
+  if (!userSkills.length) {
+    createSkillAndTrack({
+      name: "JavaScript",
+      category: "Code",
+      description: "",
+      progress: 40
+    }, { silent: true });
+    createSkillAndTrack({
+      name: "Web Design",
+      category: "Design",
+      description: "",
+      progress: 60
+    }, { silent: true });
+  }
+}
+
+function migrateLegacySkills(){
+  const hasCatalog = Boolean(localStorage.getItem(LS.skillCatalog));
+  const hasUserSkills = Boolean(localStorage.getItem(LS.userSkills));
+  if (hasCatalog || hasUserSkills) return;
+
+  const legacy = loadJSON(LS.skills, []);
+  if (!Array.isArray(legacy) || !legacy.length) return;
+
+  const userId = getCurrentUserId();
+  const now = new Date().toISOString();
+  const catalog = [];
+  const userSkills = [];
+  const legacyMap = {};
+
+  legacy.forEach((old) => {
+    const name = (old?.name || "").trim();
+    if (!name) return;
+    const skillId = uid();
+    const userSkillId = uid();
+    const legacyId = old?.id;
+    if (legacyId) legacyMap[legacyId] = userSkillId;
+
+    catalog.push({
+      id: skillId,
+      ownerId: userId,
+      name,
+      category: "",
+      description: (old?.notes || "").toString(),
+      isPublicTemplate: false,
+      createdAt: now,
+      updatedAt: now
+    });
+    userSkills.push({
+      id: userSkillId,
+      userId,
+      skillId,
+      active: true,
+      progress: clamp(old?.progress ?? 50, 0, 100),
+      createdAt: now,
+      updatedAt: now
+    });
+  });
+
+  saveJSON(LS.skillCatalog, catalog);
+  saveJSON(LS.userSkills, userSkills);
+
+  const legacyQuestMap = loadJSON(LS.quests, {});
+  const nextQuestMap = {};
+  Object.keys(legacyQuestMap || {}).forEach((oldId) => {
+    const nextId = legacyMap[oldId];
+    if (nextId) nextQuestMap[nextId] = legacyQuestMap[oldId];
+  });
+  saveJSON(LS.quests, nextQuestMap);
 }
 
 /* ========= Views (Tabs) + Animations ========= */
@@ -826,6 +924,9 @@ saveProfileBtn?.addEventListener("click", async () => {
 
 /* ========= Skills ========= */
 const skillName = $("skillName");
+const skillCategory = $("skillCategory");
+const skillDescription = $("skillDescription");
+const skillVisibility = $("skillVisibility");
 const skillProgress = $("skillProgress");
 const progressLabel = $("progressLabel");
 const addSkillBtn = $("addSkillBtn");
@@ -864,10 +965,45 @@ const legalTitle = $("legalTitle");
 const legalBody = $("legalBody");
 
 const recoChips = $("recoChips");
-const RECOMMENDED = ["Python", "JavaScript", "Web Design", "UI/UX", "Fitness", "Englisch", "Mathe", "Produktivität"];
+const RECOMMENDED = [
+  { name: "Python", category: "Code" },
+  { name: "JavaScript", category: "Code" },
+  { name: "Web Design", category: "Design" },
+  { name: "UI/UX", category: "Design" },
+  { name: "Fitness", category: "Fitness" },
+  { name: "Englisch", category: "Language" },
+  { name: "Mathe", category: "Math" },
+  { name: "Produktivitaet", category: "Productivity" }
+];
 
-function getSkills(){ return loadJSON(LS.skills, []); }
-function setSkills(skills){ saveJSON(LS.skills, skills); }
+function getSkillCatalog(){ return loadJSON(LS.skillCatalog, []); }
+function setSkillCatalog(skills){ saveJSON(LS.skillCatalog, skills); }
+function getUserSkillRows(){ return loadJSON(LS.userSkills, []); }
+function setUserSkillRows(rows){ saveJSON(LS.userSkills, rows); }
+function getTrackedSkills(){
+  const userId = getCurrentUserId();
+  const catalog = getSkillCatalog();
+  const rows = getUserSkillRows().filter(row => row.userId === userId && row.active !== false);
+
+  return rows.map(row => {
+    const skill = catalog.find(s => s.id === row.skillId);
+    if (!skill) return null;
+    return {
+      id: row.id,
+      skillId: skill.id,
+      name: skill.name,
+      category: skill.category || "",
+      description: skill.description || "",
+      progress: Number(row.progress) || 0,
+      isPublicTemplate: Boolean(skill.isPublicTemplate),
+      ownerId: skill.ownerId || null
+    };
+  }).filter(Boolean);
+}
+function getTrackedSkillById(userSkillId){
+  return getTrackedSkills().find(s => s.id === userSkillId) || null;
+}
+function getSkills(){ return getTrackedSkills(); }
 
 function getQuestMap(){ return loadJSON(LS.quests, {}); }
 function setQuestMap(map){ saveJSON(LS.quests, map); }
@@ -883,8 +1019,10 @@ function updateStats(){
   if (statActive) statActive.textContent = String(skills.length);
 
   const qmap = getQuestMap();
+  const skillIds = new Set(skills.map(s => s.id));
   let open = 0;
   for (const sid of Object.keys(qmap)) {
+    if (!skillIds.has(sid)) continue;
     open += (qmap[sid] || []).filter(q => !q.done).length;
   }
   if (statQuests) statQuests.textContent = String(open);
@@ -921,14 +1059,14 @@ function updateXP(skills){
 function renderRecommended(){
   if (!recoChips) return;
   recoChips.innerHTML = "";
-  RECOMMENDED.forEach(name => {
+  RECOMMENDED.forEach(item => {
     const b = document.createElement("button");
     b.className = "chip";
     b.type = "button";
-    b.textContent = name;
+    b.textContent = item.name;
     b.addEventListener("click", () => {
-      addSkill(name, 35);
-      toast("Skill hinzugefügt", name);
+      const added = trackTemplateSkill(item, { progress: 35 });
+      if (added) toast("Skill hinzugefuegt", item.name);
     });
     recoChips.appendChild(b);
   });
@@ -1209,8 +1347,7 @@ function makeQuestTemplates(skillName){
 }
 
 function ensureQuestsForSkill(skillId){
-  const skills = getSkills();
-  const s = skills.find(x => x.id === skillId);
+  const s = getTrackedSkillById(skillId);
   if (!s) return;
 
   const existing = getQuests(skillId);
@@ -1227,8 +1364,7 @@ function ensureQuestsForSkill(skillId){
 }
 
 function regenQuests(skillId){
-  const skills = getSkills();
-  const s = skills.find(x => x.id === skillId);
+  const s = getTrackedSkillById(skillId);
   if (!s) return;
 
   const quests = makeQuestTemplates(s.name).map(t => ({
@@ -1241,69 +1377,215 @@ function regenQuests(skillId){
   setQuests(skillId, quests);
 }
 
-function addSkill(name, progress){
-  const trimmed = (name || "").trim();
-  if (!trimmed) return;
+function createSkillAndTrack(data, opts = {}){
+  const trimmed = (data?.name || "").trim();
+  if (!trimmed) return null;
 
-  const skills = getSkills();
-  const exists = skills.some(s => s.name.toLowerCase() === trimmed.toLowerCase());
-  if (exists) { toast("Schon vorhanden", "Diesen Skill hast du bereits."); return; }
+  const exists = getTrackedSkills().some(s => s.name.toLowerCase() === trimmed.toLowerCase());
+  if (exists) {
+    if (!opts.silent) toast("Schon vorhanden", "Diesen Skill hast du bereits.");
+    return null;
+  }
 
-  const id = uid();
-  skills.unshift({ id, name: trimmed, progress: clamp(progress ?? 50, 0, 100), notes: "" });
-  setSkills(skills);
+  const userId = getCurrentUserId();
+  const now = new Date().toISOString();
+  const skill = {
+    id: uid(),
+    ownerId: userId,
+    name: trimmed,
+    category: (data?.category || "").trim(),
+    description: (data?.description || "").trim(),
+    isPublicTemplate: Boolean(data?.isPublicTemplate),
+    createdAt: now,
+    updatedAt: now
+  };
 
-  ensureQuestsForSkill(id);
+  const catalog = getSkillCatalog();
+  catalog.unshift(skill);
+  setSkillCatalog(catalog);
 
-  renderSkills();
-  hydrateSkillSelects();
-  renderQuests();
-  updateStats();
+  const userSkillId = uid();
+  const rows = getUserSkillRows();
+  rows.unshift({
+    id: userSkillId,
+    userId,
+    skillId: skill.id,
+    active: true,
+    progress: clamp(data?.progress ?? 50, 0, 100),
+    createdAt: now,
+    updatedAt: now
+  });
+  setUserSkillRows(rows);
+
+  ensureQuestsForSkill(userSkillId);
+
+  if (!opts.silent) {
+    renderSkills();
+    hydrateSkillSelects();
+    renderQuests();
+    updateStats();
+  }
+
+  return userSkillId;
+}
+
+function trackTemplateSkill(item, opts = {}){
+  const name = (typeof item === "string" ? item : item?.name || "").trim();
+  if (!name) return null;
+
+  const exists = getTrackedSkills().some(s => s.name.toLowerCase() === name.toLowerCase());
+  if (exists) {
+    if (!opts.silent) toast("Schon vorhanden", "Diesen Skill hast du bereits.");
+    return null;
+  }
+
+  const userId = getCurrentUserId();
+  const now = new Date().toISOString();
+  const catalog = getSkillCatalog();
+  let skill = catalog.find(s => s.name.toLowerCase() === name.toLowerCase() && s.isPublicTemplate);
+
+  if (!skill) {
+    skill = {
+      id: uid(),
+      ownerId: null,
+      name,
+      category: (item?.category || "").trim(),
+      description: (item?.description || "").trim(),
+      isPublicTemplate: true,
+      createdAt: now,
+      updatedAt: now
+    };
+    catalog.unshift(skill);
+    setSkillCatalog(catalog);
+  }
+
+  const userSkillId = uid();
+  const rows = getUserSkillRows();
+  rows.unshift({
+    id: userSkillId,
+    userId,
+    skillId: skill.id,
+    active: true,
+    progress: clamp(opts?.progress ?? 35, 0, 100),
+    createdAt: now,
+    updatedAt: now
+  });
+  setUserSkillRows(rows);
+
+  ensureQuestsForSkill(userSkillId);
+
+  if (!opts.silent) {
+    renderSkills();
+    hydrateSkillSelects();
+    renderQuests();
+    updateStats();
+  }
+
+  return userSkillId;
+}
+
+function addSkill(data){
+  return createSkillAndTrack(data);
 }
 
 function updateSkillProgressById(skillId, delta){
-  const skills = getSkills();
-  const i = skills.findIndex(s => s.id === skillId);
+  const userId = getCurrentUserId();
+  const rows = getUserSkillRows();
+  const i = rows.findIndex(row => row.id === skillId && row.userId === userId);
   if (i === -1) return;
 
-  skills[i].progress = clamp(skills[i].progress + delta, 0, 100);
-  setSkills(skills);
+  rows[i].progress = clamp(Number(rows[i].progress || 0) + delta, 0, 100);
+  rows[i].updatedAt = new Date().toISOString();
+  setUserSkillRows(rows);
 
   renderSkills();
   updateStats();
 }
 
 function updateSkillById(skillId, data){
-  const skills = getSkills();
-  const i = skills.findIndex(s => s.id === skillId);
-  if (i === -1) return;
+  const userId = getCurrentUserId();
+  const rows = getUserSkillRows();
+  const rowIndex = rows.findIndex(row => row.id === skillId && row.userId === userId);
+  if (rowIndex === -1) return;
 
-  const nextName = (data.name ?? skills[i].name).trim();
-  const nextNotes = data.notes ?? skills[i].notes ?? "";
+  const catalog = getSkillCatalog();
+  const skillIndex = catalog.findIndex(s => s.id === rows[rowIndex].skillId);
+  if (skillIndex === -1) return;
+
+  const nextName = (data.name ?? catalog[skillIndex].name).trim();
+  const nextCategory = (data.category ?? catalog[skillIndex].category ?? "").trim();
+  const nextDescription = (data.description ?? catalog[skillIndex].description ?? "").trim();
   if (!nextName) return;
 
-  skills[i].name = nextName;
-  skills[i].notes = String(nextNotes);
-  setSkills(skills);
+  const isOwner = catalog[skillIndex].ownerId === userId;
+  if (!isOwner) {
+    const now = new Date().toISOString();
+    const copy = {
+      ...catalog[skillIndex],
+      id: uid(),
+      ownerId: userId,
+      name: nextName,
+      category: nextCategory,
+      description: nextDescription,
+      isPublicTemplate: false,
+      createdAt: now,
+      updatedAt: now
+    };
+    catalog.unshift(copy);
+    rows[rowIndex].skillId = copy.id;
+    rows[rowIndex].updatedAt = now;
+    toast("Template kopiert", "Anpassung als eigener Skill gespeichert.");
+  } else {
+    catalog[skillIndex] = {
+      ...catalog[skillIndex],
+      name: nextName,
+      category: nextCategory,
+      description: nextDescription,
+      updatedAt: new Date().toISOString()
+    };
+  }
 
-  renderSkills();
-  updateStats();
-}
-
-function deleteSkill(id){
-  const ok = confirm("Skill wirklich löschen?");
-  if (!ok) return;
-  setSkills(getSkills().filter(s => s.id !== id));
-
-  const qmap = getQuestMap();
-  delete qmap[id];
-  setQuestMap(qmap);
+  setSkillCatalog(catalog);
+  setUserSkillRows(rows);
 
   renderSkills();
   hydrateSkillSelects();
   renderQuests();
   updateStats();
-  toast("Skill gelöscht", "Und Quests entfernt.");
+}
+
+function deleteSkill(id){
+  const ok = confirm("Skill wirklich loeschen?");
+  if (!ok) return;
+
+  const userId = getCurrentUserId();
+  const rows = getUserSkillRows();
+  const rowIndex = rows.findIndex(row => row.id === id && row.userId === userId);
+  if (rowIndex === -1) return;
+
+  const skillId = rows[rowIndex].skillId;
+  rows.splice(rowIndex, 1);
+  setUserSkillRows(rows);
+
+  const qmap = getQuestMap();
+  delete qmap[id];
+  setQuestMap(qmap);
+
+  const catalog = getSkillCatalog();
+  const skillIndex = catalog.findIndex(s => s.id === skillId);
+  if (skillIndex !== -1) {
+    const stillUsed = rows.some(row => row.skillId === skillId);
+    if (!stillUsed && catalog[skillIndex].ownerId === userId) {
+      catalog.splice(skillIndex, 1);
+    }
+    setSkillCatalog(catalog);
+  }
+
+  renderSkills();
+  hydrateSkillSelects();
+  renderQuests();
+  updateStats();
+  toast("Skill geloescht", "Und Quests entfernt.");
 }
 
 function renderSkills(){
@@ -1314,7 +1596,12 @@ function renderSkills(){
   const sortMode = skillSort?.value || "name";
   const filterMode = skillFilter?.value || "all";
 
-  if (q) skills = skills.filter(s => s.name.toLowerCase().includes(q));
+  if (q) {
+    skills = skills.filter(s => {
+      const hay = `${s.name} ${s.category || ""} ${s.description || ""}`.toLowerCase();
+      return hay.includes(q);
+    });
+  }
   if (filterMode === "low") skills = skills.filter(s => s.progress <= 39);
   if (filterMode === "mid") skills = skills.filter(s => s.progress >= 40 && s.progress <= 69);
   if (filterMode === "high") skills = skills.filter(s => s.progress >= 70);
@@ -1330,16 +1617,23 @@ function renderSkills(){
     item.className = "skill-item";
 
     const isEditing = editingSkillId === s.id;
-    const notesText = (s.notes || "").trim();
+    const descriptionText = (s.description || "").trim();
+    const tags = [];
+    if (s.category) tags.push(`<div class="tpill">${escapeHTML(s.category)}</div>`);
+    if (s.isPublicTemplate) tags.push(`<div class="tpill time">Template</div>`);
+    const tagsHtml = tags.length ? `<div class="tpills">${tags.join("")}</div>` : "";
 
     item.innerHTML = `
       <div class="skill-head">
-        <div class="skill-name">${escapeHTML(s.name)}</div>
+        <div>
+          <div class="skill-name">${escapeHTML(s.name)}</div>
+          ${tagsHtml}
+        </div>
         <div class="skill-actions">
           <button class="small-btn" data-a="minus" title="-5">-5</button>
           <button class="small-btn" data-a="plus" title="+5">+5</button>
           <button class="small-btn" data-a="edit" title="Bearbeiten">Edit</button>
-          <button class="small-btn danger" data-a="del" title="löschen">X</button>
+          <button class="small-btn danger" data-a="del" title="loeschen">X</button>
         </div>
       </div>
       <div class="skill-meta">
@@ -1350,14 +1644,15 @@ function renderSkills(){
       ${isEditing ? `
         <div class="skill-edit">
           <input class="skill-input" id="skillEditName-${s.id}" value="${escapeHTML(s.name)}" />
-          <textarea class="skill-textarea" id="skillEditNotes-${s.id}" rows="3" placeholder="Notizen...">${escapeHTML(notesText)}</textarea>
+          <input class="skill-input" id="skillEditCategory-${s.id}" value="${escapeHTML(s.category || "")}" placeholder="Kategorie (optional)" />
+          <textarea class="skill-textarea" id="skillEditDescription-${s.id}" rows="3" placeholder="Beschreibung (optional)">${escapeHTML(descriptionText)}</textarea>
           <div class="skill-edit-actions">
             <button class="small-btn" data-a="save">Speichern</button>
             <button class="small-btn" data-a="cancel">Abbrechen</button>
           </div>
         </div>
       ` : `
-        <div class="skill-notes">${notesText ? escapeHTML(notesText) : "Notizen: leer"}</div>
+        <div class="skill-notes">${descriptionText ? escapeHTML(descriptionText) : "Beschreibung: leer"}</div>
       `}
     `;
 
@@ -1375,11 +1670,13 @@ function renderSkills(){
     });
     item.querySelector('[data-a="save"]')?.addEventListener("click", () => {
       const nameEl = document.getElementById(`skillEditName-${s.id}`);
-      const notesEl = document.getElementById(`skillEditNotes-${s.id}`);
       const nextName = nameEl?.value || s.name;
-      const nextNotes = notesEl?.value || "";
+      const categoryEl = document.getElementById(`skillEditCategory-${s.id}`);
+      const descriptionEl = document.getElementById(`skillEditDescription-${s.id}`);
+      const nextCategory = categoryEl?.value || "";
+      const nextDescription = descriptionEl?.value || "";
       editingSkillId = null;
-      updateSkillById(s.id, { name: nextName, notes: nextNotes });
+      updateSkillById(s.id, { name: nextName, category: nextCategory, description: nextDescription });
     });
 
     skillList.appendChild(item);
@@ -1395,14 +1692,32 @@ if (skillProgress && progressLabel){
 }
 
 addSkillBtn?.addEventListener("click", () => {
-  addSkill(skillName?.value || "", Number(skillProgress?.value ?? 50));
+  const visibility = skillVisibility?.value || "private";
+  addSkill({
+    name: skillName?.value || "",
+    category: skillCategory?.value || "",
+    description: skillDescription?.value || "",
+    progress: Number(skillProgress?.value ?? 50),
+    isPublicTemplate: visibility === "public"
+  });
   if (skillName) skillName.value = "";
+  if (skillCategory) skillCategory.value = "";
+  if (skillDescription) skillDescription.value = "";
 });
 skillName?.addEventListener("keydown", (e) => {
   if (e.key !== "Enter") return;
   e.preventDefault();
-  addSkill(skillName?.value || "", Number(skillProgress?.value ?? 50));
+  const visibility = skillVisibility?.value || "private";
+  addSkill({
+    name: skillName?.value || "",
+    category: skillCategory?.value || "",
+    description: skillDescription?.value || "",
+    progress: Number(skillProgress?.value ?? 50),
+    isPublicTemplate: visibility === "public"
+  });
   if (skillName) skillName.value = "";
+  if (skillCategory) skillCategory.value = "";
+  if (skillDescription) skillDescription.value = "";
 });
 
 skillSearch?.addEventListener("input", renderSkills);
