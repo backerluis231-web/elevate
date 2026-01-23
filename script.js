@@ -1,4 +1,4 @@
-﻿/*******************************
+/*******************************
  * Elevate - script.js (Supabase Auth)
  * Uses Supabase OAuth providers.
  *******************************/
@@ -8,6 +8,7 @@ const LS = {
   skills: "elevate_skills", // legacy
   skillCatalog: "elevate_skill_catalog",
   userSkills: "elevate_user_skills",
+  skillAnalyses: "elevate_skill_analyses",
   localUserId: "elevate_local_user_id",
   view: "elevate_view",
   quests: "elevate_quests", // { [userSkillId]: Quest[] }
@@ -31,7 +32,16 @@ function escapeHTML(str){
     .replaceAll("'","&#039;");
 }
 function uid(){
-  return (crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + "_" + Math.random().toString(16).slice(2);
+  if (crypto?.randomUUID) return crypto.randomUUID();
+  if (!crypto?.getRandomValues) {
+    return String(Date.now()) + "_" + Math.random().toString(16).slice(2);
+  }
+  const buf = new Uint8Array(16);
+  crypto.getRandomValues(buf);
+  buf[6] = (buf[6] & 0x0f) | 0x40;
+  buf[8] = (buf[8] & 0x3f) | 0x80;
+  const hex = Array.from(buf, b => b.toString(16).padStart(2, "0")).join("");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
 
@@ -47,6 +57,31 @@ function getLocalUserId(){
 }
 function getCurrentUserId(){
   return currentUser?.id || getLocalUserId();
+}
+
+function isSupabaseReady(){
+  return Boolean(supabaseClient && currentUser);
+}
+
+function getSkillAnalysisMap(){ return loadJSON(LS.skillAnalyses, {}); }
+function setSkillAnalysisMap(map){ saveJSON(LS.skillAnalyses, map); }
+
+const RANKS = ["Bronze", "Silber", "Gold", "Platin", "Champion"];
+function getRankLabel(index){
+  const safe = clamp(Number(index) || 0, 0, RANKS.length - 1);
+  return RANKS[safe];
+}
+function getSkillDifficultyScore(skillId){
+  const analysis = getSkillAnalysisMap()[skillId];
+  const score = Number(analysis?.difficultyScore ?? 5);
+  return clamp(score, 1, 10);
+}
+function applyDifficultyToPoints(points, difficultyScore){
+  if (!Number.isFinite(points)) return 0;
+  if (points === 0) return 0;
+  if (points < 0) return points;
+  const scale = 1 + (difficultyScore - 5) * 0.08;
+  return Math.max(1, Math.round(points / Math.max(0.4, scale)));
 }
 
 /* ========= Toasts ========= */
@@ -624,11 +659,15 @@ resetPasswordBtn?.addEventListener("click", async () => {
 });
 
 let appInitialized = false;
-function initAppUI(){
+async function initAppUI(){
   if (appInitialized) return;
   appInitialized = true;
 
-  initStorageOnce();
+  initStorageOnce({ seed: !isSupabaseReady() });
+  if (isSupabaseReady()) {
+    await syncFromSupabase();
+  }
+
   renderRecommended();
   renderSkills();
   hydrateSkillSelects();
@@ -640,13 +679,13 @@ function initAppUI(){
   setView(last, { animate: false });
 }
 
-supabaseClient?.auth.onAuthStateChange((_event, session) => {
+supabaseClient?.auth.onAuthStateChange(async (_event, session) => {
   if (session?.user) {
     document.body.classList.add("authed");
     setCurrentUser(session.user);
     displayUser(session.user);
     syncProfile(session.user);
-    initAppUI();
+    await initAppUI();
     if (window.location.pathname.endsWith("/login.html")) {
       window.location.href = "./index.html";
     }
@@ -657,7 +696,8 @@ supabaseClient?.auth.onAuthStateChange((_event, session) => {
 });
 
 /* ========= Storage init ========= */
-function initStorageOnce(){
+function initStorageOnce(opts = {}){
+  const shouldSeed = opts.seed !== false;
   migrateLegacySkills();
 
   if (!localStorage.getItem(LS.skillCatalog)) {
@@ -672,19 +712,120 @@ function initStorageOnce(){
 
   const userId = getCurrentUserId();
   const userSkills = getUserSkillRows().filter(row => row.userId === userId);
-  if (!userSkills.length) {
+  if (shouldSeed && !userSkills.length) {
     createSkillAndTrack({
       name: "JavaScript",
       category: "Code",
       description: "",
       progress: 40
-    }, { silent: true });
+    }, { silent: true, skipRemote: true });
     createSkillAndTrack({
       name: "Web Design",
       category: "Design",
       description: "",
       progress: 60
-    }, { silent: true });
+    }, { silent: true, skipRemote: true });
+  }
+}
+
+async function syncFromSupabase(){
+  if (!isSupabaseReady()) return;
+  const userId = getCurrentUserId();
+
+  const userSkillsResult = await supabaseClient
+    .from("user_skills")
+    .select("id, skill_id, active, progress, rank_index, created_at, updated_at")
+    .eq("user_id", userId);
+  if (userSkillsResult.error) {
+    toast("Sync Fehler", "User Skills nicht geladen.");
+    return;
+  }
+
+  const userSkillsRows = userSkillsResult.data || [];
+  const skillIds = userSkillsRows.map(r => r.skill_id).filter(Boolean);
+
+  let skillRows = [];
+  if (skillIds.length) {
+    const skillResult = await supabaseClient
+      .from("skills")
+      .select("id, owner_id, name, description, category, is_public_template, created_at, updated_at")
+      .in("id", skillIds);
+    if (skillResult.error) {
+      toast("Sync Fehler", "Skills nicht geladen.");
+    } else {
+      skillRows = skillResult.data || [];
+    }
+  }
+
+  const catalog = skillRows.map(row => ({
+    id: row.id,
+    ownerId: row.owner_id,
+    name: row.name,
+    description: row.description || "",
+    category: row.category || "",
+    isPublicTemplate: Boolean(row.is_public_template),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  }));
+
+  const userSkills = userSkillsRows.map(row => ({
+    id: row.id,
+    userId,
+    skillId: row.skill_id,
+    active: row.active !== false,
+    progress: Number(row.progress) || 0,
+    rankIndex: Number(row.rank_index) || 0,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  }));
+
+  saveJSON(LS.skillCatalog, catalog);
+  saveJSON(LS.userSkills, userSkills);
+
+  const questResult = await supabaseClient
+    .from("quests")
+    .select("id, skill_id, title, description, status, estimated_minutes, xp, unlock_level, created_at, completed_at")
+    .eq("user_id", userId);
+  if (questResult.error) {
+    toast("Sync Fehler", "Quests nicht geladen.");
+  } else {
+    const userSkillBySkillId = new Map(userSkills.map(row => [row.skillId, row.id]));
+    const questMap = {};
+    (questResult.data || []).forEach(q => {
+      const userSkillId = userSkillBySkillId.get(q.skill_id);
+      if (!userSkillId) return;
+      if (!questMap[userSkillId]) questMap[userSkillId] = [];
+      questMap[userSkillId].push({
+        id: q.id,
+        title: q.title,
+        desc: q.description || "",
+        points: Number(q.xp) || 0,
+        done: q.status === "done",
+        status: q.status || "todo",
+        estimatedMinutes: q.estimated_minutes ?? null,
+        unlockLevel: q.unlock_level ?? 1
+      });
+    });
+    saveJSON(LS.quests, questMap);
+  }
+
+  const analysisResult = await supabaseClient
+    .from("skill_analysis")
+    .select("skill_id, json_result, version, created_at")
+    .eq("user_id", userId);
+  if (!analysisResult.error) {
+    const next = {};
+    (analysisResult.data || []).forEach(row => {
+      const prev = next[row.skill_id];
+      if (!prev || (row.version || 0) >= (prev.version || 0)) {
+        next[row.skill_id] = {
+          ...(row.json_result || {}),
+          version: row.version || 0,
+          createdAt: row.created_at
+        };
+      }
+    });
+    setSkillAnalysisMap(next);
   }
 }
 
@@ -726,6 +867,7 @@ function migrateLegacySkills(){
       skillId,
       active: true,
       progress: clamp(old?.progress ?? 50, 0, 100),
+      rankIndex: 0,
       createdAt: now,
       updatedAt: now
     });
@@ -994,6 +1136,7 @@ function getTrackedSkills(){
       name: skill.name,
       category: skill.category || "",
       description: skill.description || "",
+      rankIndex: Number(row.rankIndex ?? row.rank_index ?? 0),
       progress: Number(row.progress) || 0,
       isPublicTemplate: Boolean(skill.isPublicTemplate),
       ownerId: skill.ownerId || null
@@ -1014,6 +1157,45 @@ function setQuests(skillId, quests){
   setQuestMap(map);
 }
 
+async function syncQuestsForSkill(userSkillId, quests, opts = {}){
+  if (!isSupabaseReady()) return;
+  const tracked = getTrackedSkillById(userSkillId);
+  if (!tracked) return;
+  const userId = getCurrentUserId();
+
+  if (opts.replace) {
+    const delResult = await supabaseClient
+      .from("quests")
+      .delete()
+      .eq("user_id", userId)
+      .eq("skill_id", tracked.skillId);
+    if (delResult.error) {
+      toast("Sync Fehler", "Quests nicht aktualisiert.");
+      return;
+    }
+  }
+
+  const rows = (quests || []).map(q => ({
+    id: q.id,
+    user_id: userId,
+    skill_id: tracked.skillId,
+    title: q.title,
+    description: q.desc,
+    status: q.done ? "done" : "todo",
+    estimated_minutes: q.estimatedMinutes ?? null,
+    xp: Number(q.points) || 0,
+    unlock_level: q.unlockLevel ?? 1
+  }));
+  if (!rows.length) return;
+
+  const upsertResult = await supabaseClient
+    .from("quests")
+    .upsert(rows, { onConflict: "id" });
+  if (upsertResult.error) {
+    toast("Sync Fehler", "Quests nicht gespeichert.");
+  }
+}
+
 function updateStats(){
   const skills = getSkills();
   if (statActive) statActive.textContent = String(skills.length);
@@ -1030,9 +1212,14 @@ function updateStats(){
   updateXP(skills);
   renderTodayPlan(skills, open);
 }
+function getTotalXpForSkill(skill){
+  const rankIndex = Number(skill.rankIndex) || 0;
+  const progress = Number(skill.progress) || 0;
+  return rankIndex * 100 + progress;
+}
 function updateXP(skills){
   if (!xpLevel && !xpProgress && !xpBar && !topXpBar && !topXpText) return;
-  const total = skills.reduce((sum, s) => sum + (Number(s.progress) || 0), 0);
+  const total = skills.reduce((sum, s) => sum + getTotalXpForSkill(s), 0);
   const level = Math.max(1, Math.floor(total / 100) + 1);
   const current = total % 100;
 
@@ -1346,7 +1533,7 @@ function makeQuestTemplates(skillName){
   ];
 }
 
-function ensureQuestsForSkill(skillId){
+function ensureQuestsForSkill(skillId, opts = {}){
   const s = getTrackedSkillById(skillId);
   if (!s) return;
 
@@ -1361,6 +1548,10 @@ function ensureQuestsForSkill(skillId){
     done: false
   }));
   setQuests(skillId, quests);
+
+  if (!opts.skipRemote) {
+    void syncQuestsForSkill(skillId, quests, { replace: true });
+  }
 }
 
 function regenQuests(skillId){
@@ -1375,6 +1566,8 @@ function regenQuests(skillId){
     done: false
   }));
   setQuests(skillId, quests);
+
+  void syncQuestsForSkill(skillId, quests, { replace: true });
 }
 
 function createSkillAndTrack(data, opts = {}){
@@ -1389,6 +1582,7 @@ function createSkillAndTrack(data, opts = {}){
 
   const userId = getCurrentUserId();
   const now = new Date().toISOString();
+  const rankIndex = clamp(Number(data?.rankIndex ?? 0), 0, RANKS.length - 1);
   const skill = {
     id: uid(),
     ownerId: userId,
@@ -1412,18 +1606,61 @@ function createSkillAndTrack(data, opts = {}){
     skillId: skill.id,
     active: true,
     progress: clamp(data?.progress ?? 50, 0, 100),
+    rankIndex,
     createdAt: now,
     updatedAt: now
   });
   setUserSkillRows(rows);
 
-  ensureQuestsForSkill(userSkillId);
+  ensureQuestsForSkill(userSkillId, { skipRemote: isSupabaseReady() && !opts.skipRemote });
 
   if (!opts.silent) {
     renderSkills();
     hydrateSkillSelects();
     renderQuests();
     updateStats();
+  }
+
+  if (isSupabaseReady() && !opts.skipRemote) {
+    (async () => {
+      const skillRow = {
+        id: skill.id,
+        owner_id: userId,
+        name: skill.name,
+        description: skill.description,
+        category: skill.category,
+        is_public_template: skill.isPublicTemplate,
+        created_at: skill.createdAt,
+        updated_at: skill.updatedAt
+      };
+      const row = rows.find(r => r.id === userSkillId);
+      const userSkillRow = {
+        id: userSkillId,
+        user_id: userId,
+        skill_id: skill.id,
+        active: true,
+        progress: row?.progress ?? 0,
+        rank_index: row?.rankIndex ?? 0,
+        created_at: row?.createdAt ?? skill.createdAt,
+        updated_at: row?.updatedAt ?? skill.updatedAt
+      };
+
+      const skillResult = await supabaseClient
+        .from("skills")
+        .upsert(skillRow, { onConflict: "id" });
+      if (skillResult.error) {
+        toast("Sync Fehler", "Skill nicht gespeichert.");
+        return;
+      }
+      const userSkillResult = await supabaseClient
+        .from("user_skills")
+        .upsert(userSkillRow, { onConflict: "id" });
+      if (userSkillResult.error) {
+        toast("Sync Fehler", "Tracking nicht gespeichert.");
+        return;
+      }
+      await syncQuestsForSkill(userSkillId, getQuests(userSkillId), { replace: true });
+    })();
   }
 
   return userSkillId;
@@ -1432,74 +1669,56 @@ function createSkillAndTrack(data, opts = {}){
 function trackTemplateSkill(item, opts = {}){
   const name = (typeof item === "string" ? item : item?.name || "").trim();
   if (!name) return null;
-
-  const exists = getTrackedSkills().some(s => s.name.toLowerCase() === name.toLowerCase());
-  if (exists) {
-    if (!opts.silent) toast("Schon vorhanden", "Diesen Skill hast du bereits.");
-    return null;
-  }
-
-  const userId = getCurrentUserId();
-  const now = new Date().toISOString();
-  const catalog = getSkillCatalog();
-  let skill = catalog.find(s => s.name.toLowerCase() === name.toLowerCase() && s.isPublicTemplate);
-
-  if (!skill) {
-    skill = {
-      id: uid(),
-      ownerId: null,
-      name,
-      category: (item?.category || "").trim(),
-      description: (item?.description || "").trim(),
-      isPublicTemplate: true,
-      createdAt: now,
-      updatedAt: now
-    };
-    catalog.unshift(skill);
-    setSkillCatalog(catalog);
-  }
-
-  const userSkillId = uid();
-  const rows = getUserSkillRows();
-  rows.unshift({
-    id: userSkillId,
-    userId,
-    skillId: skill.id,
-    active: true,
-    progress: clamp(opts?.progress ?? 35, 0, 100),
-    createdAt: now,
-    updatedAt: now
-  });
-  setUserSkillRows(rows);
-
-  ensureQuestsForSkill(userSkillId);
-
-  if (!opts.silent) {
-    renderSkills();
-    hydrateSkillSelects();
-    renderQuests();
-    updateStats();
-  }
-
-  return userSkillId;
+  return createSkillAndTrack({
+    name,
+    category: item?.category || "",
+    description: item?.description || "",
+    isPublicTemplate: true,
+    progress: opts?.progress ?? 35
+  }, opts);
 }
 
 function addSkill(data){
   return createSkillAndTrack(data);
 }
 
-function updateSkillProgressById(skillId, delta){
+async function updateSkillProgressById(skillId, delta){
   const userId = getCurrentUserId();
   const rows = getUserSkillRows();
   const i = rows.findIndex(row => row.id === skillId && row.userId === userId);
   if (i === -1) return;
 
-  rows[i].progress = clamp(Number(rows[i].progress || 0) + delta, 0, 100);
+  const tracked = getTrackedSkillById(skillId);
+  const difficulty = tracked ? getSkillDifficultyScore(tracked.skillId) : 5;
+  const adjusted = applyDifficultyToPoints(delta, difficulty);
+
+  let rankIndex = Number(rows[i].rankIndex || 0);
+  let progress = Number(rows[i].progress || 0) + adjusted;
+  while (progress >= 100 && rankIndex < RANKS.length - 1) {
+    progress -= 100;
+    rankIndex += 1;
+  }
+  progress = clamp(progress, 0, 100);
+  rows[i].rankIndex = rankIndex;
+  rows[i].progress = progress;
   rows[i].updatedAt = new Date().toISOString();
   setUserSkillRows(rows);
 
   renderSkills();
   updateStats();
+
+  if (isSupabaseReady()) {
+    const { error } = await supabaseClient
+      .from("user_skills")
+      .update({
+        progress: rows[i].progress,
+        rank_index: rows[i].rankIndex,
+        updated_at: rows[i].updatedAt
+      })
+      .eq("id", rows[i].id)
+      .eq("user_id", userId);
+    if (error) toast("Sync Fehler", "Progress nicht gespeichert.");
+  }
 }
 
 function updateSkillById(skillId, data){
@@ -1552,6 +1771,42 @@ function updateSkillById(skillId, data){
   hydrateSkillSelects();
   renderQuests();
   updateStats();
+
+  if (isSupabaseReady()) {
+    (async () => {
+      const updatedSkillId = rows[rowIndex].skillId;
+      const updatedSkill = catalog.find(s => s.id === updatedSkillId);
+      if (updatedSkill) {
+        const skillResult = await supabaseClient
+          .from("skills")
+          .upsert({
+            id: updatedSkill.id,
+            owner_id: updatedSkill.ownerId,
+            name: updatedSkill.name,
+            description: updatedSkill.description,
+            category: updatedSkill.category,
+            is_public_template: updatedSkill.isPublicTemplate,
+            created_at: updatedSkill.createdAt,
+            updated_at: updatedSkill.updatedAt
+          }, { onConflict: "id" });
+        if (skillResult.error) {
+          toast("Sync Fehler", "Skill nicht gespeichert.");
+          return;
+        }
+      }
+
+      if (updatedSkillId !== skillId) {
+        const relResult = await supabaseClient
+          .from("user_skills")
+          .update({ skill_id: updatedSkillId, updated_at: rows[rowIndex].updatedAt })
+          .eq("id", rows[rowIndex].id)
+          .eq("user_id", userId);
+        if (relResult.error) {
+          toast("Sync Fehler", "Skill-Zuordnung nicht gespeichert.");
+        }
+      }
+    })();
+  }
 }
 
 function deleteSkill(id){
@@ -1586,6 +1841,36 @@ function deleteSkill(id){
   renderQuests();
   updateStats();
   toast("Skill geloescht", "Und Quests entfernt.");
+
+  if (isSupabaseReady()) {
+    (async () => {
+      await supabaseClient
+        .from("quests")
+        .delete()
+        .eq("user_id", userId)
+        .eq("skill_id", skillId);
+
+      const userResult = await supabaseClient
+        .from("user_skills")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", userId);
+      if (userResult.error) {
+        toast("Sync Fehler", "Skill nicht geloescht.");
+        return;
+      }
+      if (!rows.some(row => row.skillId === skillId)) {
+        const skillResult = await supabaseClient
+          .from("skills")
+          .delete()
+          .eq("id", skillId)
+          .eq("owner_id", userId);
+        if (skillResult.error) {
+          toast("Sync Fehler", "Skill-Template nicht geloescht.");
+        }
+      }
+    })();
+  }
 }
 
 function renderSkills(){
@@ -1622,6 +1907,7 @@ function renderSkills(){
     if (s.category) tags.push(`<div class="tpill">${escapeHTML(s.category)}</div>`);
     if (s.isPublicTemplate) tags.push(`<div class="tpill time">Template</div>`);
     const tagsHtml = tags.length ? `<div class="tpills">${tags.join("")}</div>` : "";
+    const rankLabel = getRankLabel(s.rankIndex);
 
     item.innerHTML = `
       <div class="skill-head">
@@ -1637,8 +1923,8 @@ function renderSkills(){
         </div>
       </div>
       <div class="skill-meta">
-        <span>Progress</span>
-        <span><strong>${s.progress}%</strong></span>
+        <span>Rank</span>
+        <span><strong>${escapeHTML(rankLabel)}</strong> - ${s.progress}%</span>
       </div>
       <div class="bar"><div style="width:${s.progress}%"></div></div>
       ${isEditing ? `
@@ -1779,7 +2065,10 @@ function renderQuests(){
   ensureQuestsForSkill(selected);
 
   const quests = getQuests(selected);
+  const tracked = getTrackedSkillById(selected);
+  const difficulty = tracked ? getSkillDifficultyScore(tracked.skillId) : 5;
   quests.forEach(q => {
+    const effectivePoints = applyDifficultyToPoints(q.points, difficulty);
     const row = document.createElement("div");
     row.className = "quest" + (q.done ? " done" : "");
     row.innerHTML = `
@@ -1788,9 +2077,9 @@ function renderQuests(){
         <div class="quest-sub">${escapeHTML(q.desc)}</div>
       </div>
       <div class="quest-badges">
-        <div class="badge-pill points">+${q.points}%</div>
+        <div class="badge-pill points">+${effectivePoints}%</div>
         <button class="small-btn" data-q="done" ${q.done ? "disabled" : ""}>
-          ${q.done ? "Erledigt" : "Abschließen"}
+          ${q.done ? "Erledigt" : "Abschliessen"}
         </button>
       </div>
     `;
@@ -1801,17 +2090,33 @@ function renderQuests(){
   updateStats();
 }
 
-function completeQuest(skillId, questId){
+async function completeQuest(skillId, questId){
   const quests = getQuests(skillId);
   const i = quests.findIndex(q => q.id === questId);
   if (i === -1 || quests[i].done) return;
 
   quests[i].done = true;
+  quests[i].status = "done";
+  quests[i].completedAt = new Date().toISOString();
   setQuests(skillId, quests);
+
+  const tracked = getTrackedSkillById(skillId);
+  const difficulty = tracked ? getSkillDifficultyScore(tracked.skillId) : 5;
+  const effectivePoints = applyDifficultyToPoints(quests[i].points, difficulty);
 
   updateSkillProgressById(skillId, quests[i].points);
   renderQuests();
-  toast("Quest erledigt ✅", `+${quests[i].points}% Progress`);
+  toast("Quest erledigt", `+${effectivePoints}% Progress`);
+
+  if (isSupabaseReady()) {
+    const userId = getCurrentUserId();
+    const { error } = await supabaseClient
+      .from("quests")
+      .update({ status: "done", completed_at: quests[i].completedAt })
+      .eq("id", questId)
+      .eq("user_id", userId);
+    if (error) toast("Sync Fehler", "Quest nicht gespeichert.");
+  }
 }
 
 regenQuestsBtn?.addEventListener("click", () => {
@@ -2117,10 +2422,11 @@ async function boot(){
   const user = await checkAuth();
   if (!user) return; // not logged in: keep landing visible
 
-  initAppUI();
+  await initAppUI();
 }
 
 boot();
+
 
 
 

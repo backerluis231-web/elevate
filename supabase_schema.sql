@@ -31,6 +31,7 @@ create table if not exists user_skills (
   skill_id uuid not null references skills (id) on delete cascade,
   active boolean not null default true,
   progress integer not null default 0,
+  rank_index integer not null default 0,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (user_id, skill_id)
