@@ -136,12 +136,16 @@ const autoReveal = document.querySelectorAll(
 );
 autoReveal.forEach(el => el.classList.add("reveal"));
 const reveals = document.querySelectorAll(".reveal");
-const io = new IntersectionObserver((entries) => {
-  for (const e of entries) {
-    e.target.classList.toggle("show", e.isIntersecting);
-  }
-}, { threshold: 0.18, rootMargin: "0px 0px -8% 0px" });
-reveals.forEach(el => io.observe(el));
+if ("IntersectionObserver" in window) {
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      e.target.classList.toggle("show", e.isIntersecting);
+    }
+  }, { threshold: 0.18, rootMargin: "0px 0px -8% 0px" });
+  reveals.forEach(el => io.observe(el));
+} else {
+  reveals.forEach(el => el.classList.add("show"));
+}
 
 /* ========= Hero Particles (public) ========= */
 function initHeroParticles(){
