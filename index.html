@@ -501,13 +501,21 @@
               </span>
               <span class="side-label">Dashboard</span>
             </button>
+            <button class="side-link" data-view="add-skill" type="button">
+              <span class="side-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </span>
+              <span class="side-label">Neuer Skill</span>
+            </button>
             <button class="side-link" data-view="skills" type="button">
               <span class="side-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M13 3 4 14h6l-1 7 9-11h-6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
                 </svg>
               </span>
-              <span class="side-label">Skills</span>
+              <span class="side-label">Meine Skills</span>
             </button>
             <button class="side-link" data-view="tutorials" type="button">
               <span class="side-icon" aria-hidden="true">
@@ -559,11 +567,11 @@
         <div class="app-header">
           <div>
             <h2 class="app-title" id="viewTitle">Dashboard</h2>
-            <p class="app-sub" id="viewSub">Dein ï¿½berblick. Starte mit einem Skill.</p>
+            <p class="app-sub" id="viewSub">Dein Ueberblick. Starte mit einem Skill.</p>
           </div>
 
           <div class="app-actions">
-            <button class="btn primary" id="primaryAction" type="button">Zu Skills</button>
+            <button class="btn primary" id="primaryAction" type="button">Neuer Skill</button>
           </div>
         </div>
 
@@ -611,10 +619,30 @@
             </div>
 
             <div class="card col-12">
+              <div class="card-head">
+                <div>
+                  <h3>Aktiver Skill</h3>
+                  <p class="hint" id="dashboardSkillHint" style="margin:0;">Waehle einen Skill in "Meine Skills".</p>
+                </div>
+                <div class="row-inline" style="margin:0;">
+                  <button class="mini-btn" id="dashboardGoSkills" type="button">Meine Skills</button>
+                  <button class="btn" id="dashboardGoAddSkill" type="button">Neuer Skill</button>
+                </div>
+              </div>
+              <div class="skill-meta" id="dashboardSkillMeta">
+                <span>Rank</span>
+                <span><strong>-</strong></span>
+              </div>
+              <div class="bar"><div id="dashboardSkillBar"></div></div>
+            </div>
+
+
+
+            <div class="card col-12">
               <h3>Heute-Plan (3 Schritte)</h3>
               <ul class="today-list" id="todayPlanList"></ul>
               <div class="row-inline">
-                <button class="btn" id="goSkills" type="button">Zu Skills</button>
+                <button class="btn" id="goSkills" type="button">Neuer Skill</button>
                 <button class="btn" id="goTutorials" type="button">Zu Tutorials</button>
               </div>
             </div>
@@ -622,42 +650,24 @@
           </div>
         </section>
 
-        <!-- View: Skills -->
-        <section class="view" id="view-skills">
+        <!-- View: Add Skill -->
+        <section class="view" id="view-add-skill">
           <div class="grid">
-            <div class="card col-5">
-              <h3>Neuen Skill</h3>
-
+            <div class="card col-6">
+              <h3>Neuer Skill</h3>
+              <p class="hint" style="margin-top:6px;">Name + Beschreibung, dann KI Analyse. Danach landet er in "Meine Skills".</p>
               <div class="form-row">
                 <label class="label">
                   Name
-                  <input class="input" id="skillName" placeholder="z.B. Python, Gym, Webdesign" />
-                </label>
-
-                <label class="label">
-                  Kategorie (optional)
-                  <input class="input" id="skillCategory" placeholder="z.B. Code, Fitness, Design" />
+                  <input class="input" id="newSkillName" placeholder="z.B. Python, Gym, Webdesign" />
                 </label>
 
                 <label class="label">
                   Beschreibung (optional)
-                  <textarea class="input" id="skillDescription" rows="3" placeholder="Kurzbeschreibung zum Skill"></textarea>
+                  <textarea class="input" id="newSkillDescription" rows="4" placeholder="Kurzbeschreibung, Ziel, Vorerfahrung"></textarea>
                 </label>
 
-                <label class="label">
-                  Sichtbarkeit
-                  <select class="select" id="skillVisibility">
-                    <option value="private">Privat</option>
-                    <option value="public">Public Template</option>
-                  </select>
-                </label>
-
-                <label class="label">
-                  Progress: <span id="progressLabel">50%</span>
-                  <input class="range" id="skillProgress" type="range" min="0" max="100" value="50" />
-                </label>
-
-                <button class="btn primary" id="addSkillBtn" type="button">Hinzufï¿½gen</button>
+                <button class="btn primary" id="createSkillBtn" type="button">Analysieren & hinzufuegen</button>
               </div>
 
               <div class="divider"></div>
@@ -666,23 +676,31 @@
               <div class="chips" id="recoChips"></div>
             </div>
 
-            <div class="card col-7">
+            <div class="card col-6">
               <div class="card-head">
-                <h3>Quests</h3>
-                <div class="quest-controls">
-                  <select class="select" id="questSkillSelect" title="Skill wï¿½hlen"></select>
-                  <button class="btn" id="regenQuestsBtn" type="button">Neue Quests</button>
+                <div>
+                  <h3>Analyse Preview</h3>
+                  <p class="hint" style="margin:0;">Letzte Analyse fuer den neuen Skill.</p>
                 </div>
               </div>
 
-              <p class="hint" style="margin-top:0;">Schlieï¿½e Quests ab ? der ausgewï¿½hlte Skill bekommt Progress.</p>
-              <div class="quest-list" id="questList"></div>
-              <p class="hint" id="questEmptyHint" style="display:none;">Erstelle zuerst einen Skill.</p>
+              <div class="quest-list" id="analysisResult"></div>
+              <p class="hint" id="analysisEmptyHint" style="display:none; margin-top:10px;">
+                Noch keine Analyse vorhanden.
+              </p>
             </div>
+          </div>
+        </section>
 
-            <div class="card col-12">
+        <!-- View: Skills -->
+        <section class="view" id="view-skills">
+          <div class="grid">
+            <div class="card col-5">
               <div class="card-head">
-                <h3>Deine Liste</h3>
+                <div>
+                  <h3>Meine Skills</h3>
+                  <p class="hint" style="margin:0;">Klicke einen Skill fuer Details.</p>
+                </div>
                 <div class="skill-controls">
                   <div class="control-group">
                     <input class="input small" id="skillSearch" placeholder="Suchen..." />
@@ -706,35 +724,49 @@
 
               <div class="skill-list" id="skillList"></div>
               <p class="hint" id="emptyHint" style="display:none; margin-top:10px;">
-                Noch keine Skills ï¿½ fï¿½ge oben links einen hinzu.
+                Noch keine Skills - fuege oben im "Neuer Skill" Tab einen hinzu.
                 <button class="btn" id="emptyCta" type="button" style="margin-top:10px;">Skill erstellen</button>
               </p>
             </div>
 
-            <div class="card col-12">
+            <div class="card col-7" id="skillDetailCard">
               <div class="card-head">
                 <div>
-                  <h3>AI Skill Analyzer</h3>
-                  <p class="hint" style="margin:0;">Analyse, Level-System und Quest-Plan in einem.</p>
+                  <h3 id="skillDetailTitle">Skill Detail</h3>
+                  <p class="hint" id="skillDetailDesc" style="margin:0;">Waehle links einen Skill.</p>
                 </div>
                 <div class="quest-controls">
-                  <select class="select" id="analysisSkillSelect" title="Skill waehlen"></select>
-                  <button class="btn" id="analyzeSkillBtn" type="button">Skill analysieren</button>
+                  <button class="mini-btn" id="editSkillBtn" type="button">Bearbeiten</button>
+                  <button class="mini-btn danger" id="deleteSkillBtn" type="button">Loeschen</button>
+                  <button class="btn" id="regenQuestsBtn" type="button">Neue Quests</button>
                 </div>
               </div>
 
-              <div class="form-row">
-                <label class="label">
-                  Kurzbeschreibung (optional)
-                  <textarea class="input" id="analysisDescription" rows="3" placeholder="Kontext, Ziel, Vorerfahrung..."></textarea>
-                </label>
+              <div class="skill-meta" id="skillDetailMeta">
+                <span>Rank</span>
+                <span><strong>-</strong></span>
+              </div>
+              <div class="bar"><div id="skillDetailBar"></div></div>
+              <div class="quest-badges" id="skillDetailBadges"></div>
+
+              <div class="skill-edit" id="skillDetailEdit" style="display:none;">
+                <input class="skill-input" id="skillDetailEditName" placeholder="Skill Name" />
+                <input class="skill-input" id="skillDetailEditCategory" placeholder="Kategorie (optional)" />
+                <textarea class="skill-textarea" id="skillDetailEditDescription" rows="3" placeholder="Beschreibung (optional)"></textarea>
+                <div class="skill-edit-actions">
+                  <button class="small-btn" id="skillDetailSaveBtn" type="button">Speichern</button>
+                  <button class="small-btn" id="skillDetailCancelBtn" type="button">Abbrechen</button>
+                </div>
               </div>
 
               <div class="divider"></div>
-              <div class="quest-list" id="analysisResult"></div>
-              <p class="hint" id="analysisEmptyHint" style="display:none; margin-top:10px;">
-                Noch keine Analyse fuer diesen Skill.
-              </p>
+
+              <div class="card-head" style="padding:0;">
+                <h3>Quests</h3>
+              </div>
+              <p class="hint" style="margin-top:0;">Schliesse Quests ab - Progress steigt automatisch.</p>
+              <div class="quest-list" id="questList"></div>
+              <p class="hint" id="questEmptyHint" style="display:none;">Erstelle zuerst einen Skill.</p>
             </div>
           </div>
         </section>
@@ -745,12 +777,12 @@
             <div class="card-head">
               <div>
                 <h3 style="margin-bottom:2px;">Tutorials</h3>
-                <p class="hint" style="margin:0;">Suche & Filter. Optional: als Quest fï¿½r einen Skill speichern.</p>
+                <p class="hint" style="margin:0;">Provisorisch: Suche & Filter. Optional als Quest speichern.</p>
               </div>
 
               <div class="tutorial-controls">
                 <select class="select" id="tutorialSkillTarget" title="Quest-Skill">
-                  <option value="">Quest-Skill: ï¿½</option>
+                  <option value="">Quest-Skill:</option>
                 </select>
                 <input class="input small" id="tutorialSearch" placeholder="Suchen..." />
                 <select class="select" id="tutorialTag" title="Tag">
@@ -783,6 +815,49 @@
                   <input class="input" id="settingsFullName" placeholder="Dein Name" />
                 </label>
                 <button class="btn primary" id="saveProfileBtn" type="button">Speichern</button>
+              </div>
+            </div>
+
+            <div class="card col-6">
+              <h3>App Einstellungen</h3>
+              <p class="hint" style="margin-top:6px;">Theme und Layout fuer deine Arbeit.</p>
+              <div class="form-row">
+                <label class="label">
+                  Theme
+                  <select class="select" id="settingsTheme">
+                    <option value="light">Hell</option>
+                    <option value="dark">Dunkel</option>
+                  </select>
+                </label>
+                <label class="label">
+                  Sidebar
+                  <select class="select" id="settingsSidebar">
+                    <option value="expanded">Erweitert</option>
+                    <option value="collapsed">Kompakt</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+
+            <div class="card col-6">
+              <h3>Benachrichtigungen</h3>
+              <p class="hint" style="margin-top:6px;">Provisorisch, wird spaeter aktiviert.</p>
+              <div class="form-row">
+                <label class="label">
+                  Erinnerungen
+                  <select class="select" id="settingsReminders">
+                    <option value="off">Aus</option>
+                    <option value="daily">Taeglich</option>
+                    <option value="weekly">Woechentlich</option>
+                  </select>
+                </label>
+                <label class="label">
+                  Weekly Summary
+                  <select class="select" id="settingsWeekly">
+                    <option value="on">An</option>
+                    <option value="off">Aus</option>
+                  </select>
+                </label>
               </div>
             </div>
 
@@ -830,7 +905,8 @@
       </div>
       <nav class="mobile-menu-nav">
         <button class="side-link" data-view="dashboard" type="button">Dashboard</button>
-        <button class="side-link" data-view="skills" type="button">Skills</button>
+        <button class="side-link" data-view="add-skill" type="button">Neuer Skill</button>
+        <button class="side-link" data-view="skills" type="button">Meine Skills</button>
         <button class="side-link" data-view="tutorials" type="button">Tutorials</button>
         <button class="side-link" data-view="settings" type="button">Settings</button>
       </nav>

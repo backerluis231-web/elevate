@@ -11,6 +11,7 @@ const LS = {
   skillAnalyses: "elevate_skill_analyses",
   localUserId: "elevate_local_user_id",
   view: "elevate_view",
+  selectedSkillId: "elevate_selected_skill_id",
   quests: "elevate_quests", // { [userSkillId]: Quest[] }
   lastLevel: "elevate_last_level",
   sidebarCollapsed: "elevate_sidebar_collapsed"
@@ -674,6 +675,7 @@ async function initAppUI(){
   renderQuests();
   updateStats();
   renderTutorials();
+  initSettingsControls();
 
   const last = localStorage.getItem(LS.view) || "dashboard";
   setView(last, { animate: false });
@@ -909,9 +911,10 @@ toggleSidebar?.addEventListener("click", () => {
 });
 
 const views = {
-  dashboard: { el: $("view-dashboard"), title: "Dashboard", sub: "Dein Überblick. Starte mit einem Skill.", action: "Zu Skills" },
-  skills: { el: $("view-skills"), title: "Skills", sub: "Skills & Quests verwalten - Progress durch Aufgaben.", action: "Neuen Skill" },
-  tutorials: { el: $("view-tutorials"), title: "Tutorials", sub: "Suchen, filtern und als Quest speichern.", action: "Zu Skills" },
+  dashboard: { el: $("view-dashboard"), title: "Dashboard", sub: "Dein Ueberblick. Starte mit einem Skill.", action: "Neuer Skill" },
+  "add-skill": { el: $("view-add-skill"), title: "Neuer Skill", sub: "Name + Beschreibung, dann KI Analyse.", action: "Analysieren" },
+  skills: { el: $("view-skills"), title: "Meine Skills", sub: "Mini-Projekte mit Quests und Progress.", action: "Neuer Skill" },
+  tutorials: { el: $("view-tutorials"), title: "Tutorials", sub: "Provisorisch: suchen, filtern und als Quest speichern.", action: "Zu Skills" },
   settings: { el: $("view-settings"), title: "Settings", sub: "Profil und Account verwalten.", action: "Profil speichern" },
 };
 
@@ -1016,13 +1019,16 @@ mobileMenu?.querySelectorAll("[data-view]").forEach(btn => {
   });
 });
 
-$("goSkills")?.addEventListener("click", () => setView("skills"));
+$("goSkills")?.addEventListener("click", () => setView("add-skill"));
 $("goTutorials")?.addEventListener("click", () => setView("tutorials"));
+dashboardGoSkills?.addEventListener("click", () => setView("skills"));
+dashboardGoAddSkill?.addEventListener("click", () => setView("add-skill"));
 
 primaryAction?.addEventListener("click", () => {
   const current = localStorage.getItem(LS.view) || "dashboard";
-  if (current === "dashboard") setView("skills");
-  else if (current === "skills") $("skillName")?.focus();
+  if (current === "dashboard") setView("add-skill");
+  else if (current === "add-skill") createSkillBtn?.click();
+  else if (current === "skills") setView("add-skill");
   else if (current === "tutorials") setView("skills");
   else if (current === "settings") saveProfileBtn?.click();
 });
@@ -1066,15 +1072,24 @@ saveProfileBtn?.addEventListener("click", async () => {
 });
 
 /* ========= Skills ========= */
-const skillName = $("skillName");
-const skillCategory = $("skillCategory");
-const skillDescription = $("skillDescription");
-const skillVisibility = $("skillVisibility");
-const skillProgress = $("skillProgress");
-const progressLabel = $("progressLabel");
-const addSkillBtn = $("addSkillBtn");
+const newSkillName = $("newSkillName");
+const newSkillDescription = $("newSkillDescription");
+const createSkillBtn = $("createSkillBtn");
 const skillList = $("skillList");
 const emptyHint = $("emptyHint");
+const skillDetailTitle = $("skillDetailTitle");
+const skillDetailDesc = $("skillDetailDesc");
+const skillDetailMeta = $("skillDetailMeta");
+const skillDetailBar = $("skillDetailBar");
+const skillDetailBadges = $("skillDetailBadges");
+const skillDetailEdit = $("skillDetailEdit");
+const skillDetailEditName = $("skillDetailEditName");
+const skillDetailEditCategory = $("skillDetailEditCategory");
+const skillDetailEditDescription = $("skillDetailEditDescription");
+const skillDetailSaveBtn = $("skillDetailSaveBtn");
+const skillDetailCancelBtn = $("skillDetailCancelBtn");
+const editSkillBtn = $("editSkillBtn");
+const deleteSkillBtn = $("deleteSkillBtn");
 
 const statActive = $("statActive");
 const statQuests = $("statQuests");
@@ -1090,13 +1105,12 @@ const skillSort = $("skillSort");
 const skillFilter = $("skillFilter");
 const skillClearBtn = $("skillClearBtn");
 const skillResetBtn = $("skillResetBtn");
-const analysisSkillSelect = $("analysisSkillSelect");
-const analyzeSkillBtn = $("analyzeSkillBtn");
-const analysisDescription = $("analysisDescription");
 const analysisResult = $("analysisResult");
 const analysisEmptyHint = $("analysisEmptyHint");
+let selectedSkillId = localStorage.getItem(LS.selectedSkillId) || null;
 let editingSkillId = null;
 let analysisBusy = false;
+let lastAnalyzedSkillId = null;
 const todayPlanList = $("todayPlanList");
 const emptyCta = $("emptyCta");
 const rewardsList = $("rewardsList");
@@ -1112,6 +1126,15 @@ const legalModal = $("legalModal");
 const closeLegal = $("closeLegal");
 const legalTitle = $("legalTitle");
 const legalBody = $("legalBody");
+const settingsTheme = $("settingsTheme");
+const settingsSidebar = $("settingsSidebar");
+const settingsReminders = $("settingsReminders");
+const settingsWeekly = $("settingsWeekly");
+const dashboardSkillHint = $("dashboardSkillHint");
+const dashboardSkillMeta = $("dashboardSkillMeta");
+const dashboardSkillBar = $("dashboardSkillBar");
+const dashboardGoSkills = $("dashboardGoSkills");
+const dashboardGoAddSkill = $("dashboardGoAddSkill");
 
 const recoChips = $("recoChips");
 const RECOMMENDED = [
@@ -1160,6 +1183,26 @@ function getAnalysisForUserSkill(userSkillId){
   return map[tracked.skillId] || null;
 }
 function getSkills(){ return getTrackedSkills(); }
+function setSelectedSkillId(id){
+  if (id) {
+    selectedSkillId = id;
+    localStorage.setItem(LS.selectedSkillId, id);
+  } else {
+    selectedSkillId = null;
+    localStorage.removeItem(LS.selectedSkillId);
+  }
+}
+function resolveSelectedSkillId(skills){
+  if (!Array.isArray(skills) || !skills.length) return null;
+  if (selectedSkillId && skills.some(s => s.id === selectedSkillId)) return selectedSkillId;
+  return skills[0].id;
+}
+function getSelectedSkill(){
+  const skills = getSkills();
+  const selected = resolveSelectedSkillId(skills);
+  if (!selected) return null;
+  return skills.find(s => s.id === selected) || null;
+}
 
 function getQuestMap(){ return loadJSON(LS.quests, {}); }
 function setQuestMap(map){ saveJSON(LS.quests, map); }
@@ -1224,6 +1267,24 @@ function updateStats(){
 
   updateXP(skills);
   renderTodayPlan(skills, open);
+  renderDashboardSkill();
+}
+function renderDashboardSkill(){
+  if (!dashboardSkillMeta || !dashboardSkillBar || !dashboardSkillHint) return;
+  const skill = getSelectedSkill();
+  if (!skill) {
+    dashboardSkillMeta.innerHTML = "<span>Rank</span><span><strong>-</strong></span>";
+    dashboardSkillBar.style.width = "0%";
+    dashboardSkillHint.textContent = "Waehle einen Skill in \"Meine Skills\".";
+    return;
+  }
+
+  const rankLabel = getRankLabel(skill.rankIndex);
+  dashboardSkillMeta.innerHTML = `<span>Rank</span><span><strong>${escapeHTML(rankLabel)}</strong> - ${skill.progress}%</span>`;
+  dashboardSkillBar.style.width = `${skill.progress}%`;
+  dashboardSkillHint.textContent = skill.description
+    ? `${skill.name} - ${skill.description}`
+    : skill.name;
 }
 function getTotalXpForSkill(skill){
   const rankIndex = Number(skill.rankIndex) || 0;
@@ -1265,11 +1326,42 @@ function renderRecommended(){
     b.type = "button";
     b.textContent = item.name;
     b.addEventListener("click", () => {
-      const added = trackTemplateSkill(item, { progress: 35 });
-      if (added) toast("Skill hinzugefuegt", item.name);
+      if (newSkillName) newSkillName.value = item.name;
+      if (newSkillDescription) newSkillDescription.value = "";
+      newSkillName?.focus();
+      toast("Skill ausgewaehlt", "Beschreibung ergaenzen und analysieren.");
     });
     recoChips.appendChild(b);
   });
+}
+
+function initSettingsControls(){
+  if (settingsTheme) {
+    const current = localStorage.getItem(LS.theme) || "light";
+    settingsTheme.value = current === "dark" ? "dark" : "light";
+    settingsTheme.addEventListener("change", () => applyTheme(settingsTheme.value));
+  }
+  if (settingsSidebar) {
+    const collapsed = localStorage.getItem(LS.sidebarCollapsed) === "1";
+    settingsSidebar.value = collapsed ? "collapsed" : "expanded";
+    settingsSidebar.addEventListener("change", () => {
+      setSidebarCollapsed(settingsSidebar.value === "collapsed");
+    });
+  }
+  if (settingsReminders) {
+    const saved = localStorage.getItem("elevate_reminders") || "off";
+    settingsReminders.value = saved;
+    settingsReminders.addEventListener("change", () => {
+      localStorage.setItem("elevate_reminders", settingsReminders.value);
+    });
+  }
+  if (settingsWeekly) {
+    const saved = localStorage.getItem("elevate_weekly_summary") || "on";
+    settingsWeekly.value = saved;
+    settingsWeekly.addEventListener("change", () => {
+      localStorage.setItem("elevate_weekly_summary", settingsWeekly.value);
+    });
+  }
 }
 
 const REWARDS = [
@@ -1901,6 +1993,60 @@ function deleteSkill(id){
   }
 }
 
+function renderSkillDetail(skill){
+  if (!skillDetailTitle || !skillDetailMeta || !skillDetailBar) return;
+
+  if (!skill) {
+    skillDetailTitle.textContent = "Skill Detail";
+    if (skillDetailDesc) skillDetailDesc.textContent = "Waehle links einen Skill.";
+    skillDetailMeta.innerHTML = "<span>Rank</span><span><strong>-</strong></span>";
+    skillDetailBar.style.width = "0%";
+    if (skillDetailBadges) skillDetailBadges.innerHTML = "";
+    if (questList) questList.innerHTML = "";
+    if (questEmptyHint) questEmptyHint.style.display = "block";
+    if (editSkillBtn) editSkillBtn.disabled = true;
+    if (deleteSkillBtn) deleteSkillBtn.disabled = true;
+    if (regenQuestsBtn) regenQuestsBtn.disabled = true;
+    if (skillDetailEdit) skillDetailEdit.style.display = "none";
+    return;
+  }
+
+  if (editSkillBtn) editSkillBtn.disabled = false;
+  if (deleteSkillBtn) deleteSkillBtn.disabled = false;
+  if (regenQuestsBtn) regenQuestsBtn.disabled = false;
+
+  const rankLabel = getRankLabel(skill.rankIndex);
+  skillDetailTitle.textContent = skill.name;
+  if (skillDetailDesc) {
+    skillDetailDesc.textContent = skill.description ? skill.description : "Beschreibung: leer";
+  }
+  skillDetailMeta.innerHTML = `<span>Rank</span><span><strong>${escapeHTML(rankLabel)}</strong> - ${skill.progress}%</span>`;
+  skillDetailBar.style.width = `${skill.progress}%`;
+
+  if (skillDetailBadges) {
+    const badges = [];
+    if (skill.category) badges.push(`<div class="badge-pill">${escapeHTML(skill.category)}</div>`);
+    const quests = getQuests(skill.id);
+    const open = quests.filter(q => !q.done).length;
+    badges.push(`<div class="badge-pill">Offen: ${open}</div>`);
+    const analysis = getSkillAnalysisMap()[skill.skillId];
+    if (analysis?.difficultyScore) badges.push(`<div class="badge-pill points">${analysis.difficultyScore}/10</div>`);
+    if (analysis?.levels?.length) badges.push(`<div class="badge-pill">Levels: ${analysis.levels.length}</div>`);
+    if (analysis?.version) badges.push(`<div class="badge-pill">v${analysis.version}</div>`);
+    skillDetailBadges.innerHTML = badges.join("");
+  }
+
+  if (skillDetailEdit) {
+    const editing = editingSkillId === skill.id;
+    skillDetailEdit.style.display = editing ? "block" : "none";
+    if (editing) {
+      if (skillDetailEditName) skillDetailEditName.value = skill.name;
+      if (skillDetailEditCategory) skillDetailEditCategory.value = skill.category || "";
+      if (skillDetailEditDescription) skillDetailEditDescription.value = skill.description || "";
+    }
+  }
+}
+
 function renderSkills(){
   if (!skillList) return;
 
@@ -1924,16 +2070,29 @@ function renderSkills(){
 
   skillList.innerHTML = "";
   if (emptyHint) emptyHint.style.display = skills.length ? "none" : "block";
+  if (!skills.length) {
+    setSelectedSkillId(null);
+    lastAnalyzedSkillId = null;
+    renderSkillDetail(null);
+    renderSkillAnalysis(null);
+    updateStats();
+    return;
+  }
+
+  const selected = resolveSelectedSkillId(skills);
+  setSelectedSkillId(selected);
 
   skills.forEach(s => {
     const item = document.createElement("div");
-    item.className = "skill-item";
+    item.className = "skill-item skill-card" + (s.id === selected ? " is-selected" : "");
+    item.setAttribute("role", "button");
+    item.setAttribute("tabindex", "0");
 
-    const isEditing = editingSkillId === s.id;
     const descriptionText = (s.description || "").trim();
     const tags = [];
     if (s.category) tags.push(`<div class="tpill">${escapeHTML(s.category)}</div>`);
-    if (s.isPublicTemplate) tags.push(`<div class="tpill time">Template</div>`);
+    const openQuests = getQuests(s.id).filter(q => !q.done).length;
+    tags.push(`<div class="tpill time">Offen: ${openQuests}</div>`);
     const tagsHtml = tags.length ? `<div class="tpills">${tags.join("")}</div>` : "";
     const rankLabel = getRankLabel(s.rankIndex);
 
@@ -1943,95 +2102,118 @@ function renderSkills(){
           <div class="skill-name">${escapeHTML(s.name)}</div>
           ${tagsHtml}
         </div>
-        <div class="skill-actions">
-          <button class="small-btn" data-a="minus" title="-5">-5</button>
-          <button class="small-btn" data-a="plus" title="+5">+5</button>
-          <button class="small-btn" data-a="edit" title="Bearbeiten">Edit</button>
-          <button class="small-btn danger" data-a="del" title="loeschen">X</button>
-        </div>
       </div>
       <div class="skill-meta">
         <span>Rank</span>
         <span><strong>${escapeHTML(rankLabel)}</strong> - ${s.progress}%</span>
       </div>
       <div class="bar"><div style="width:${s.progress}%"></div></div>
-      ${isEditing ? `
-        <div class="skill-edit">
-          <input class="skill-input" id="skillEditName-${s.id}" value="${escapeHTML(s.name)}" />
-          <input class="skill-input" id="skillEditCategory-${s.id}" value="${escapeHTML(s.category || "")}" placeholder="Kategorie (optional)" />
-          <textarea class="skill-textarea" id="skillEditDescription-${s.id}" rows="3" placeholder="Beschreibung (optional)">${escapeHTML(descriptionText)}</textarea>
-          <div class="skill-edit-actions">
-            <button class="small-btn" data-a="save">Speichern</button>
-            <button class="small-btn" data-a="cancel">Abbrechen</button>
-          </div>
-        </div>
-      ` : `
-        <div class="skill-notes">${descriptionText ? escapeHTML(descriptionText) : "Beschreibung: leer"}</div>
-      `}
+      <div class="skill-notes">${descriptionText ? escapeHTML(descriptionText) : "Beschreibung: leer"}</div>
     `;
 
-    item.querySelector('[data-a="minus"]').addEventListener("click", () => updateSkillProgressById(s.id, -5));
-    item.querySelector('[data-a="plus"]').addEventListener("click", () => updateSkillProgressById(s.id, +5));
-    item.querySelector('[data-a="del"]').addEventListener("click", () => deleteSkill(s.id));
-    item.querySelector('[data-a="edit"]').addEventListener("click", () => {
-      editingSkillId = s.id;
+    item.addEventListener("click", () => {
+      setSelectedSkillId(s.id);
       renderSkills();
-      document.getElementById(`skillEditName-${s.id}`)?.focus();
+      renderQuests();
+      renderSkillAnalysis(s.id);
     });
-    item.querySelector('[data-a="cancel"]')?.addEventListener("click", () => {
-      editingSkillId = null;
+    item.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      e.preventDefault();
+      setSelectedSkillId(s.id);
       renderSkills();
-    });
-    item.querySelector('[data-a="save"]')?.addEventListener("click", () => {
-      const nameEl = document.getElementById(`skillEditName-${s.id}`);
-      const nextName = nameEl?.value || s.name;
-      const categoryEl = document.getElementById(`skillEditCategory-${s.id}`);
-      const descriptionEl = document.getElementById(`skillEditDescription-${s.id}`);
-      const nextCategory = categoryEl?.value || "";
-      const nextDescription = descriptionEl?.value || "";
-      editingSkillId = null;
-      updateSkillById(s.id, { name: nextName, category: nextCategory, description: nextDescription });
+      renderQuests();
+      renderSkillAnalysis(s.id);
     });
 
     skillList.appendChild(item);
   });
 
+  const selectedSkill = skills.find(s => s.id === selected) || null;
+  renderSkillDetail(selectedSkill);
+  if (selected) renderSkillAnalysis(selected);
+
   updateStats();
 }
-if (skillProgress && progressLabel){
-  progressLabel.textContent = `${skillProgress.value}%`;
-  skillProgress.addEventListener("input", () => {
-    progressLabel.textContent = `${skillProgress.value}%`;
-  });
+async function createSkillFromForm(){
+  const name = (newSkillName?.value || "").trim();
+  const description = (newSkillDescription?.value || "").trim();
+  if (!name) {
+    toast("Name fehlt", "Bitte einen Skill-Namen eingeben.");
+    newSkillName?.focus();
+    return;
+  }
+
+  const exists = getTrackedSkills().some(s => s.name.toLowerCase() === name.toLowerCase());
+  if (exists) {
+    toast("Schon vorhanden", "Diesen Skill hast du bereits.");
+    return;
+  }
+
+  const userSkillId = createSkillAndTrack({
+    name,
+    category: "",
+    description,
+    progress: 0
+  }, { silent: true });
+  if (!userSkillId) return;
+
+  setSelectedSkillId(userSkillId);
+  renderSkills();
+  renderQuests();
+
+  const ok = await requestSkillAnalysis(userSkillId, description);
+  if (ok) {
+    regenQuests(userSkillId);
+    renderQuests();
+  }
+  renderSkillAnalysis(userSkillId);
+  toast("Skill erstellt", name);
+
+  if (newSkillName) newSkillName.value = "";
+  if (newSkillDescription) newSkillDescription.value = "";
+  setView("skills");
 }
 
-addSkillBtn?.addEventListener("click", () => {
-  const visibility = skillVisibility?.value || "private";
-  addSkill({
-    name: skillName?.value || "",
-    category: skillCategory?.value || "",
-    description: skillDescription?.value || "",
-    progress: Number(skillProgress?.value ?? 50),
-    isPublicTemplate: visibility === "public"
-  });
-  if (skillName) skillName.value = "";
-  if (skillCategory) skillCategory.value = "";
-  if (skillDescription) skillDescription.value = "";
+createSkillBtn?.addEventListener("click", () => {
+  void createSkillFromForm();
 });
-skillName?.addEventListener("keydown", (e) => {
+newSkillName?.addEventListener("keydown", (e) => {
   if (e.key !== "Enter") return;
   e.preventDefault();
-  const visibility = skillVisibility?.value || "private";
-  addSkill({
-    name: skillName?.value || "",
-    category: skillCategory?.value || "",
-    description: skillDescription?.value || "",
-    progress: Number(skillProgress?.value ?? 50),
-    isPublicTemplate: visibility === "public"
-  });
-  if (skillName) skillName.value = "";
-  if (skillCategory) skillCategory.value = "";
-  if (skillDescription) skillDescription.value = "";
+  void createSkillFromForm();
+});
+
+editSkillBtn?.addEventListener("click", () => {
+  const skill = getSelectedSkill();
+  if (!skill) return;
+  editingSkillId = skill.id;
+  renderSkillDetail(skill);
+});
+skillDetailCancelBtn?.addEventListener("click", () => {
+  editingSkillId = null;
+  renderSkillDetail(getSelectedSkill());
+});
+skillDetailSaveBtn?.addEventListener("click", () => {
+  const skill = getSelectedSkill();
+  if (!skill) return;
+  const nextName = (skillDetailEditName?.value || "").trim() || skill.name;
+  const nextCategory = (skillDetailEditCategory?.value || "").trim();
+  const nextDescription = (skillDetailEditDescription?.value || "").trim();
+  editingSkillId = null;
+  updateSkillById(skill.id, { name: nextName, category: nextCategory, description: nextDescription });
+  renderSkills();
+  renderQuests();
+});
+deleteSkillBtn?.addEventListener("click", () => {
+  const skill = getSelectedSkill();
+  if (!skill) return;
+  if (!confirm(`Skill \"${skill.name}\" loeschen?`)) return;
+  deleteSkill(skill.id);
+  editingSkillId = null;
+  setSelectedSkillId(null);
+  renderSkills();
+  renderQuests();
 });
 
 skillSearch?.addEventListener("input", renderSkills);
@@ -2049,8 +2231,8 @@ skillResetBtn?.addEventListener("click", () => {
   renderSkills();
 });
 emptyCta?.addEventListener("click", () => {
-  setView("skills");
-  skillName?.focus();
+  setView("add-skill");
+  newSkillName?.focus();
 });
 
 document.addEventListener("keydown", (e) => {
@@ -2063,32 +2245,31 @@ document.addEventListener("keydown", (e) => {
   }
   if (e.key.toLowerCase() === "n") {
     e.preventDefault();
-    setView("skills");
-    skillName?.focus();
+    setView("add-skill");
+    newSkillName?.focus();
   }
 });
 
 /* ========= Quests ========= */
-const questSkillSelect = $("questSkillSelect");
 const regenQuestsBtn = $("regenQuestsBtn");
 const questList = $("questList");
 const questEmptyHint = $("questEmptyHint");
 
 function renderQuests(){
-  if (!questSkillSelect || !questList) return;
+  if (!questList) return;
 
   const skills = getSkills();
   questList.innerHTML = "";
 
   if (!skills.length) {
     if (questEmptyHint) questEmptyHint.style.display = "block";
-    questSkillSelect.innerHTML = `<option value="">Kein Skill</option>`;
     return;
   }
   if (questEmptyHint) questEmptyHint.style.display = "none";
 
-  const selected = questSkillSelect.value || skills[0].id;
-  questSkillSelect.value = selected;
+  const selected = resolveSelectedSkillId(skills);
+  if (!selected) return;
+  setSelectedSkillId(selected);
 
   ensureQuestsForSkill(selected);
 
@@ -2128,22 +2309,19 @@ function renderQuests(){
   updateStats();
 }
 
-function renderSkillAnalysis(){
-  if (!analysisResult || !analysisSkillSelect) return;
+function renderSkillAnalysis(userSkillId){
+  if (!analysisResult) return;
 
-  const skills = getSkills();
   analysisResult.innerHTML = "";
 
-  if (!skills.length) {
-    analysisSkillSelect.innerHTML = `<option value="">Kein Skill</option>`;
+  const targetId = userSkillId || lastAnalyzedSkillId || selectedSkillId;
+  if (!targetId) {
     if (analysisEmptyHint) analysisEmptyHint.style.display = "block";
     return;
   }
 
-  const selected = analysisSkillSelect.value || skills[0].id;
-  analysisSkillSelect.value = selected;
-
-  const analysis = getAnalysisForUserSkill(selected);
+  const tracked = getTrackedSkillById(targetId);
+  const analysis = getAnalysisForUserSkill(targetId);
   if (!analysis) {
     if (analysisEmptyHint) analysisEmptyHint.style.display = "block";
     return;
@@ -2157,6 +2335,7 @@ function renderSkillAnalysis(){
   const metaParts = [];
   const notes = Array.isArray(analysis.notes) ? analysis.notes : [];
   const warnings = Array.isArray(analysis.warnings) ? analysis.warnings : [];
+  if (tracked?.name) metaParts.push(`Skill: ${tracked.name}`);
   if (analysis.version) metaParts.push(`Version ${analysis.version}`);
   if (analysis.model) metaParts.push(analysis.model);
   if (notes.length) metaParts.push(`Hinweise: ${notes.join(" | ")}`);
@@ -2263,30 +2442,20 @@ function buildMockAnalysis(tracked){
   };
 }
 
-async function requestSkillAnalysis(){
-  if (analysisBusy) return;
-  if (!analysisSkillSelect) return;
-
-  const skills = getSkills();
-  if (!skills.length) {
-    toast("Skill fehlt", "Erstelle zuerst einen Skill.");
-    return;
-  }
-
-  const selected = analysisSkillSelect.value || skills[0].id;
-  analysisSkillSelect.value = selected;
-  const tracked = getTrackedSkillById(selected);
-  if (!tracked) return;
+async function requestSkillAnalysis(userSkillId, userDescription){
+  if (analysisBusy) return false;
+  const tracked = getTrackedSkillById(userSkillId);
+  if (!tracked) return false;
 
   analysisBusy = true;
-  const prevLabel = analyzeSkillBtn?.textContent || "Skill analysieren";
-  if (analyzeSkillBtn) {
-    analyzeSkillBtn.disabled = true;
-    analyzeSkillBtn.textContent = "Analysiere...";
+  const prevLabel = createSkillBtn?.textContent || "Analysieren & hinzufuegen";
+  if (createSkillBtn) {
+    createSkillBtn.disabled = true;
+    createSkillBtn.textContent = "Analysiere...";
   }
 
   try {
-    const userDesc = (analysisDescription?.value || "").trim();
+    const userDesc = (userDescription || "").trim();
     if (!isSupabaseReady()) {
       const analysis = buildMockAnalysis(tracked);
       const map = getSkillAnalysisMap();
@@ -2298,20 +2467,21 @@ async function requestSkillAnalysis(){
         createdAt: new Date().toISOString()
       };
       setSkillAnalysisMap(map);
-      renderSkillAnalysis();
-      if (!getQuests(selected).length) {
-        ensureQuestsForSkill(selected, { skipRemote: true });
+      lastAnalyzedSkillId = userSkillId;
+      renderSkillAnalysis(userSkillId);
+      if (!getQuests(userSkillId).length) {
+        ensureQuestsForSkill(userSkillId, { skipRemote: true });
         renderQuests();
       }
       toast("Analyse fertig", "Lokaler Stub (kein API).");
-      return;
+      return true;
     }
 
     const { data } = await supabaseClient.auth.getSession();
     const token = data?.session?.access_token;
     if (!token) {
       toast("Login fehlt", "Bitte einloggen.");
-      return;
+      return false;
     }
 
     const response = await fetch("/api/skill-analyze", {
@@ -2328,25 +2498,28 @@ async function requestSkillAnalysis(){
     const payload = await response.json().catch(() => ({}));
     if (!response.ok || !payload?.ok) {
       toast("Analyse fehlgeschlagen", payload?.message || "Fehler bei der Analyse.");
-      return;
+      return false;
     }
 
     const map = getSkillAnalysisMap();
     map[tracked.skillId] = payload.data;
     setSkillAnalysisMap(map);
-    renderSkillAnalysis();
-    if (!getQuests(selected).length) {
-      ensureQuestsForSkill(selected);
+    lastAnalyzedSkillId = userSkillId;
+    renderSkillAnalysis(userSkillId);
+    if (!getQuests(userSkillId).length) {
+      ensureQuestsForSkill(userSkillId);
       renderQuests();
     }
     toast("Analyse fertig", "Ergebnis gespeichert.");
+    return true;
   } catch (err) {
     toast("Analyse fehlgeschlagen", err?.message || "Fehler");
+    return false;
   } finally {
     analysisBusy = false;
-    if (analyzeSkillBtn) {
-      analyzeSkillBtn.disabled = false;
-      analyzeSkillBtn.textContent = prevLabel;
+    if (createSkillBtn) {
+      createSkillBtn.disabled = false;
+      createSkillBtn.textContent = prevLabel;
     }
   }
 }
@@ -2381,16 +2554,13 @@ async function completeQuest(skillId, questId){
 }
 
 regenQuestsBtn?.addEventListener("click", () => {
-  const sid = questSkillSelect?.value;
+  const sid = resolveSelectedSkillId(getSkills());
   if (!sid) return;
   regenQuests(sid);
   renderQuests();
   toast("Neue Quests", "Frische Aufgaben generiert.");
 });
 
-questSkillSelect?.addEventListener("change", () => renderQuests());
-analysisSkillSelect?.addEventListener("change", () => renderSkillAnalysis());
-analyzeSkillBtn?.addEventListener("click", () => requestSkillAnalysis());
 
 /* ========= Tutorials ========= */
 const TUTORIALS = [
@@ -2418,28 +2588,12 @@ function tagLabel(tag){
 function hydrateSkillSelects(){
   const skills = getSkills();
 
-  if (questSkillSelect) {
-    const prev = questSkillSelect.value;
-    questSkillSelect.innerHTML = skills.length
-      ? skills.map(s => `<option value="${s.id}">${escapeHTML(s.name)}</option>`).join("")
-      : `<option value="">Kein Skill</option>`;
-    if (prev && skills.some(s => s.id === prev)) questSkillSelect.value = prev;
-  }
-
   if (tutorialSkillTarget) {
     const prev = tutorialSkillTarget.value;
     tutorialSkillTarget.innerHTML =
       `<option value="">Quest-Skill: </option>` +
       skills.map(s => `<option value="${s.id}">${escapeHTML(s.name)}</option>`).join("");
     if (prev && skills.some(s => s.id === prev)) tutorialSkillTarget.value = prev;
-  }
-
-  if (analysisSkillSelect) {
-    const prev = analysisSkillSelect.value;
-    analysisSkillSelect.innerHTML = skills.length
-      ? skills.map(s => `<option value="${s.id}">${escapeHTML(s.name)}</option>`).join("")
-      : `<option value="">Kein Skill</option>`;
-    if (prev && skills.some(s => s.id === prev)) analysisSkillSelect.value = prev;
   }
 
   renderSkillAnalysis();
