@@ -918,6 +918,16 @@ const views = {
   settings: { el: $("view-settings"), title: "Settings", sub: "Profil und Account verwalten.", action: "Profil speichern" },
 };
 
+function resolveViewEl(name){
+  const view = views[name];
+  if (!view) return null;
+  if (!view.el) {
+    const fallbackId = `view-${name}`;
+    view.el = document.getElementById(fallbackId);
+  }
+  return view.el;
+}
+
 let isViewSwitching = false;
 let pendingView = null;
 
@@ -933,8 +943,8 @@ async function setView(name, opts = { animate: true }){
   isViewSwitching = true;
   localStorage.setItem(LS.view, v);
 
-  const curEl = views[current]?.el;
-  const nextEl = views[v]?.el;
+  const curEl = resolveViewEl(current);
+  const nextEl = resolveViewEl(v);
 
   // sidebar active
   document.querySelectorAll(".side-link").forEach(btn => {
@@ -956,7 +966,7 @@ async function setView(name, opts = { animate: true }){
   });
 
   if (opts.animate === false) {
-    Object.keys(views).forEach(k => views[k].el?.classList.toggle("view-active", k === v));
+    Object.keys(views).forEach(k => resolveViewEl(k)?.classList.toggle("view-active", k === v));
     isViewSwitching = false;
     if (pendingView) {
       const next = pendingView;
@@ -973,7 +983,7 @@ async function setView(name, opts = { animate: true }){
     curEl.classList.remove("view-anim-exit");
     curEl.classList.remove("view-active");
   }
-  Object.keys(views).forEach(k => views[k].el?.classList.remove("view-active"));
+  Object.keys(views).forEach(k => resolveViewEl(k)?.classList.remove("view-active"));
 
   // show next + animate in
   nextEl.classList.add("view-active");
@@ -993,7 +1003,10 @@ async function setView(name, opts = { animate: true }){
 }
 
 document.querySelectorAll(".side-link").forEach(btn => {
-  btn.addEventListener("click", () => setView(btn.getAttribute("data-view")));
+  btn.addEventListener("click", () => {
+    const target = (btn.getAttribute("data-view") || "").trim();
+    if (target) setView(target);
+  });
 });
 
 function openMobileMenu(){
@@ -1014,7 +1027,8 @@ mobileMenu?.addEventListener("click", (e) => {
 });
 mobileMenu?.querySelectorAll("[data-view]").forEach(btn => {
   btn.addEventListener("click", () => {
-    setView(btn.getAttribute("data-view"));
+    const target = (btn.getAttribute("data-view") || "").trim();
+    if (target) setView(target);
     closeMobileMenu();
   });
 });
