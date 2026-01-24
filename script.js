@@ -811,7 +811,7 @@ async function syncFromSupabase(){
 
   const analysisResult = await supabaseClient
     .from("skill_analysis")
-    .select("skill_id, json_result, version, created_at")
+    .select("skill_id, json_result, model, version, created_at")
     .eq("user_id", userId);
   if (!analysisResult.error) {
     const next = {};
@@ -820,6 +820,7 @@ async function syncFromSupabase(){
       if (!prev || (row.version || 0) >= (prev.version || 0)) {
         next[row.skill_id] = {
           ...(row.json_result || {}),
+          model: row.model || null,
           version: row.version || 0,
           createdAt: row.created_at
         };
@@ -1089,7 +1090,13 @@ const skillSort = $("skillSort");
 const skillFilter = $("skillFilter");
 const skillClearBtn = $("skillClearBtn");
 const skillResetBtn = $("skillResetBtn");
+const analysisSkillSelect = $("analysisSkillSelect");
+const analyzeSkillBtn = $("analyzeSkillBtn");
+const analysisDescription = $("analysisDescription");
+const analysisResult = $("analysisResult");
+const analysisEmptyHint = $("analysisEmptyHint");
 let editingSkillId = null;
+let analysisBusy = false;
 const todayPlanList = $("todayPlanList");
 const emptyCta = $("emptyCta");
 const rewardsList = $("rewardsList");
@@ -1145,6 +1152,12 @@ function getTrackedSkills(){
 }
 function getTrackedSkillById(userSkillId){
   return getTrackedSkills().find(s => s.id === userSkillId) || null;
+}
+function getAnalysisForUserSkill(userSkillId){
+  const tracked = getTrackedSkillById(userSkillId);
+  if (!tracked) return null;
+  const map = getSkillAnalysisMap();
+  return map[tracked.skillId] || null;
 }
 function getSkills(){ return getTrackedSkills(); }
 
@@ -1527,26 +1540,48 @@ function renderTodayPlan(skills, openQuests){
 
 function makeQuestTemplates(skillName){
   return [
-    { title: `10 Min üben: ${skillName}`, desc: "Timer an, kurz und fokussiert.", points: 5 },
-    { title: `Mini-Output bauen`, desc: "Etwas Kleines erstellen (Snippet/Design/Übung).", points: 10 },
-    { title: `1 Tutorial-Teil anschauen`, desc: "Ein Abschnitt reicht – nicht perfekt sein.", points: 7 },
+    { title: `10 Min Ueben: ${skillName}`, desc: "Timer an, kurz und fokussiert.", points: 5, estimatedMinutes: 10, unlockLevel: 1 },
+    { title: "Mini-Output bauen", desc: "Etwas Kleines erstellen (Snippet/Design/Uebung).", points: 10, estimatedMinutes: 20, unlockLevel: 2 },
+    { title: "1 Tutorial-Teil anschauen", desc: "Ein Abschnitt reicht - nicht perfekt sein.", points: 7, estimatedMinutes: 15, unlockLevel: 1 },
   ];
 }
 
-function ensureQuestsForSkill(skillId, opts = {}){
-  const s = getTrackedSkillById(skillId);
-  if (!s) return;
+function getQuestTemplatesForSkill(userSkillId){
+  const tracked = getTrackedSkillById(userSkillId);
+  if (!tracked) return [];
+  const analysis = getSkillAnalysisMap()[tracked.skillId];
+  if (analysis?.questPlan?.length) {
+    return analysis.questPlan.map((quest) => ({
+      title: quest.title || "Quest",
+      desc: quest.description || "",
+      points: Number(quest.xp) || 5,
+      estimatedMinutes: Number(quest.estimatedTime) || 15,
+      unlockLevel: Number(quest.unlockLevel) || 1
+    }));
+  }
+  return makeQuestTemplates(tracked.name);
+}
 
-  const existing = getQuests(skillId);
-  if (existing.length) return;
-
-  const quests = makeQuestTemplates(s.name).map(t => ({
+function buildQuestList(templates){
+  return (templates || []).map(t => ({
     id: uid(),
     title: t.title,
     desc: t.desc,
-    points: t.points,
-    done: false
+    points: Number(t.points) || 0,
+    done: false,
+    status: "todo",
+    estimatedMinutes: Number(t.estimatedMinutes) || null,
+    unlockLevel: Number(t.unlockLevel) || 1
   }));
+}
+
+function ensureQuestsForSkill(skillId, opts = {}){
+  const existing = getQuests(skillId);
+  if (existing.length) return;
+
+  const templates = getQuestTemplatesForSkill(skillId);
+  if (!templates.length) return;
+  const quests = buildQuestList(templates);
   setQuests(skillId, quests);
 
   if (!opts.skipRemote) {
@@ -1555,16 +1590,9 @@ function ensureQuestsForSkill(skillId, opts = {}){
 }
 
 function regenQuests(skillId){
-  const s = getTrackedSkillById(skillId);
-  if (!s) return;
-
-  const quests = makeQuestTemplates(s.name).map(t => ({
-    id: uid(),
-    title: t.title,
-    desc: t.desc,
-    points: t.points,
-    done: false
-  }));
+  const templates = getQuestTemplatesForSkill(skillId);
+  if (!templates.length) return;
+  const quests = buildQuestList(templates);
   setQuests(skillId, quests);
 
   void syncQuestsForSkill(skillId, quests, { replace: true });
@@ -2069,6 +2097,14 @@ function renderQuests(){
   const difficulty = tracked ? getSkillDifficultyScore(tracked.skillId) : 5;
   quests.forEach(q => {
     const effectivePoints = applyDifficultyToPoints(q.points, difficulty);
+    const estimatedMinutes = Number(q.estimatedMinutes);
+    const unlockLevel = Number(q.unlockLevel);
+    const timeBadge = Number.isFinite(estimatedMinutes) && estimatedMinutes > 0
+      ? `<div class="badge-pill">${estimatedMinutes}m</div>`
+      : "";
+    const levelBadge = Number.isFinite(unlockLevel) && unlockLevel > 0
+      ? `<div class="badge-pill">Lvl ${unlockLevel}</div>`
+      : "";
     const row = document.createElement("div");
     row.className = "quest" + (q.done ? " done" : "");
     row.innerHTML = `
@@ -2077,6 +2113,8 @@ function renderQuests(){
         <div class="quest-sub">${escapeHTML(q.desc)}</div>
       </div>
       <div class="quest-badges">
+        ${timeBadge}
+        ${levelBadge}
         <div class="badge-pill points">+${effectivePoints}%</div>
         <button class="small-btn" data-q="done" ${q.done ? "disabled" : ""}>
           ${q.done ? "Erledigt" : "Abschliessen"}
@@ -2088,6 +2126,229 @@ function renderQuests(){
   });
 
   updateStats();
+}
+
+function renderSkillAnalysis(){
+  if (!analysisResult || !analysisSkillSelect) return;
+
+  const skills = getSkills();
+  analysisResult.innerHTML = "";
+
+  if (!skills.length) {
+    analysisSkillSelect.innerHTML = `<option value="">Kein Skill</option>`;
+    if (analysisEmptyHint) analysisEmptyHint.style.display = "block";
+    return;
+  }
+
+  const selected = analysisSkillSelect.value || skills[0].id;
+  analysisSkillSelect.value = selected;
+
+  const analysis = getAnalysisForUserSkill(selected);
+  if (!analysis) {
+    if (analysisEmptyHint) analysisEmptyHint.style.display = "block";
+    return;
+  }
+  if (analysisEmptyHint) analysisEmptyHint.style.display = "none";
+
+  const difficulty = Number(analysis.difficultyScore) || 0;
+  const levels = Array.isArray(analysis.levels) ? analysis.levels : [];
+  const questPlan = Array.isArray(analysis.questPlan) ? analysis.questPlan : [];
+  const levelCount = levels.length || Number(analysis.recommendedLevels) || 0;
+  const metaParts = [];
+  const notes = Array.isArray(analysis.notes) ? analysis.notes : [];
+  const warnings = Array.isArray(analysis.warnings) ? analysis.warnings : [];
+  if (analysis.version) metaParts.push(`Version ${analysis.version}`);
+  if (analysis.model) metaParts.push(analysis.model);
+  if (notes.length) metaParts.push(`Hinweise: ${notes.join(" | ")}`);
+  if (warnings.length) metaParts.push(`Warnungen: ${warnings.join(" | ")}`);
+
+  const summary = document.createElement("div");
+  summary.className = "quest";
+  summary.innerHTML = `
+    <div>
+      <div class="quest-title">Analyse</div>
+      <div class="quest-sub">${escapeHTML(metaParts.join(" | ") || "Analyse geladen.")}</div>
+    </div>
+    <div class="quest-badges">
+      <div class="badge-pill points">${difficulty}/10</div>
+      <div class="badge-pill">Levels: ${levelCount}</div>
+    </div>
+  `;
+  analysisResult.appendChild(summary);
+
+  const levelTitle = document.createElement("div");
+  levelTitle.className = "hint";
+  levelTitle.style.marginTop = "8px";
+  levelTitle.textContent = "Level Uebersicht";
+  analysisResult.appendChild(levelTitle);
+
+  levels.forEach((level, index) => {
+    const row = document.createElement("div");
+    row.className = "quest";
+    const criteria = Array.isArray(level.criteria) ? level.criteria.filter(Boolean) : [];
+    const criteriaText = criteria.length ? `Kriterien: ${criteria.join(" | ")}` : "";
+    const subText = [level.description || "", criteriaText].filter(Boolean).join(" | ");
+    row.innerHTML = `
+      <div>
+        <div class="quest-title">Level ${index + 1}: ${escapeHTML(level.name || "")}</div>
+        <div class="quest-sub">${escapeHTML(subText || "Keine Details")}</div>
+      </div>
+      <div class="quest-badges">
+        <div class="badge-pill">Lvl ${index + 1}</div>
+      </div>
+    `;
+    analysisResult.appendChild(row);
+  });
+
+  const questTitle = document.createElement("div");
+  questTitle.className = "hint";
+  questTitle.style.marginTop = "8px";
+  questTitle.textContent = "Quest Plan";
+  analysisResult.appendChild(questTitle);
+
+  questPlan.forEach((quest, index) => {
+    const row = document.createElement("div");
+    row.className = "quest";
+    const estimated = Number(quest.estimatedTime);
+    const unlock = Number(quest.unlockLevel);
+    const xp = Number(quest.xp);
+    const timeBadge = Number.isFinite(estimated) && estimated > 0
+      ? `<div class="badge-pill">${estimated}m</div>`
+      : "";
+    const levelBadge = Number.isFinite(unlock) && unlock > 0
+      ? `<div class="badge-pill">Lvl ${unlock}</div>`
+      : "";
+    const xpBadge = Number.isFinite(xp) && xp > 0
+      ? `<div class="badge-pill points">+${xp}%</div>`
+      : "";
+    row.innerHTML = `
+      <div>
+        <div class="quest-title">${escapeHTML(quest.title || `Quest ${index + 1}`)}</div>
+        <div class="quest-sub">${escapeHTML(quest.description || "")}</div>
+      </div>
+      <div class="quest-badges">
+        ${timeBadge}
+        ${levelBadge}
+        ${xpBadge}
+      </div>
+    `;
+    analysisResult.appendChild(row);
+  });
+}
+
+function buildMockAnalysis(tracked){
+  const base = makeQuestTemplates(tracked.name);
+  const questPlan = [];
+  for (let i = 0; i < 6; i += 1) {
+    const t = base[i % base.length];
+    questPlan.push({
+      title: t.title,
+      description: t.desc,
+      estimatedTime: t.estimatedMinutes || 15,
+      xp: t.points || 5,
+      unlockLevel: (i % RANKS.length) + 1
+    });
+  }
+  return {
+    difficultyScore: clamp(5 + (tracked.name.length % 4) - 2, 1, 10),
+    recommendedLevels: RANKS.length,
+    levels: RANKS.map((name, index) => ({
+      name,
+      description: `Stufe ${index + 1} fuer ${tracked.name}.`,
+      criteria: [`Kernaufgabe in Stufe ${index + 1} sicher ausfuehren.`]
+    })),
+    questPlan,
+    warnings: [],
+    notes: ["Lokaler Stub ohne API Key."]
+  };
+}
+
+async function requestSkillAnalysis(){
+  if (analysisBusy) return;
+  if (!analysisSkillSelect) return;
+
+  const skills = getSkills();
+  if (!skills.length) {
+    toast("Skill fehlt", "Erstelle zuerst einen Skill.");
+    return;
+  }
+
+  const selected = analysisSkillSelect.value || skills[0].id;
+  analysisSkillSelect.value = selected;
+  const tracked = getTrackedSkillById(selected);
+  if (!tracked) return;
+
+  analysisBusy = true;
+  const prevLabel = analyzeSkillBtn?.textContent || "Skill analysieren";
+  if (analyzeSkillBtn) {
+    analyzeSkillBtn.disabled = true;
+    analyzeSkillBtn.textContent = "Analysiere...";
+  }
+
+  try {
+    const userDesc = (analysisDescription?.value || "").trim();
+    if (!isSupabaseReady()) {
+      const analysis = buildMockAnalysis(tracked);
+      const map = getSkillAnalysisMap();
+      const nextVersion = Number(map[tracked.skillId]?.version || 0) + 1;
+      map[tracked.skillId] = {
+        ...analysis,
+        model: "local-mock",
+        version: nextVersion,
+        createdAt: new Date().toISOString()
+      };
+      setSkillAnalysisMap(map);
+      renderSkillAnalysis();
+      if (!getQuests(selected).length) {
+        ensureQuestsForSkill(selected, { skipRemote: true });
+        renderQuests();
+      }
+      toast("Analyse fertig", "Lokaler Stub (kein API).");
+      return;
+    }
+
+    const { data } = await supabaseClient.auth.getSession();
+    const token = data?.session?.access_token;
+    if (!token) {
+      toast("Login fehlt", "Bitte einloggen.");
+      return;
+    }
+
+    const response = await fetch("/api/skill-analyze", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        skillId: tracked.skillId,
+        userDescription: userDesc
+      })
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload?.ok) {
+      toast("Analyse fehlgeschlagen", payload?.message || "Fehler bei der Analyse.");
+      return;
+    }
+
+    const map = getSkillAnalysisMap();
+    map[tracked.skillId] = payload.data;
+    setSkillAnalysisMap(map);
+    renderSkillAnalysis();
+    if (!getQuests(selected).length) {
+      ensureQuestsForSkill(selected);
+      renderQuests();
+    }
+    toast("Analyse fertig", "Ergebnis gespeichert.");
+  } catch (err) {
+    toast("Analyse fehlgeschlagen", err?.message || "Fehler");
+  } finally {
+    analysisBusy = false;
+    if (analyzeSkillBtn) {
+      analyzeSkillBtn.disabled = false;
+      analyzeSkillBtn.textContent = prevLabel;
+    }
+  }
 }
 
 async function completeQuest(skillId, questId){
@@ -2128,6 +2389,8 @@ regenQuestsBtn?.addEventListener("click", () => {
 });
 
 questSkillSelect?.addEventListener("change", () => renderQuests());
+analysisSkillSelect?.addEventListener("change", () => renderSkillAnalysis());
+analyzeSkillBtn?.addEventListener("click", () => requestSkillAnalysis());
 
 /* ========= Tutorials ========= */
 const TUTORIALS = [
@@ -2166,10 +2429,20 @@ function hydrateSkillSelects(){
   if (tutorialSkillTarget) {
     const prev = tutorialSkillTarget.value;
     tutorialSkillTarget.innerHTML =
-      `<option value="">Quest-Skill: —</option>` +
+      `<option value="">Quest-Skill: </option>` +
       skills.map(s => `<option value="${s.id}">${escapeHTML(s.name)}</option>`).join("");
     if (prev && skills.some(s => s.id === prev)) tutorialSkillTarget.value = prev;
   }
+
+  if (analysisSkillSelect) {
+    const prev = analysisSkillSelect.value;
+    analysisSkillSelect.innerHTML = skills.length
+      ? skills.map(s => `<option value="${s.id}">${escapeHTML(s.name)}</option>`).join("")
+      : `<option value="">Kein Skill</option>`;
+    if (prev && skills.some(s => s.id === prev)) analysisSkillSelect.value = prev;
+  }
+
+  renderSkillAnalysis();
 }
 
 function addTutorialAsQuest(skillId, tutorial){
@@ -2184,7 +2457,10 @@ function addTutorialAsQuest(skillId, tutorial){
     title: `Tutorial: ${tutorial.title}`,
     desc: `Bearbeite dieses Tutorial (${tutorial.mins} min).`,
     points: 10,
-    done: false
+    done: false,
+    status: "todo",
+    estimatedMinutes: tutorial.mins,
+    unlockLevel: 1
   };
 
   quests.unshift(newQ);

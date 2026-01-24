@@ -710,6 +710,32 @@
                 <button class="btn" id="emptyCta" type="button" style="margin-top:10px;">Skill erstellen</button>
               </p>
             </div>
+
+            <div class="card col-12">
+              <div class="card-head">
+                <div>
+                  <h3>AI Skill Analyzer</h3>
+                  <p class="hint" style="margin:0;">Analyse, Level-System und Quest-Plan in einem.</p>
+                </div>
+                <div class="quest-controls">
+                  <select class="select" id="analysisSkillSelect" title="Skill waehlen"></select>
+                  <button class="btn" id="analyzeSkillBtn" type="button">Skill analysieren</button>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <label class="label">
+                  Kurzbeschreibung (optional)
+                  <textarea class="input" id="analysisDescription" rows="3" placeholder="Kontext, Ziel, Vorerfahrung..."></textarea>
+                </label>
+              </div>
+
+              <div class="divider"></div>
+              <div class="quest-list" id="analysisResult"></div>
+              <p class="hint" id="analysisEmptyHint" style="display:none; margin-top:10px;">
+                Noch keine Analyse fuer diesen Skill.
+              </p>
+            </div>
           </div>
         </section>
 
