@@ -2468,25 +2468,33 @@ async function requestSkillAnalysis(userSkillId, userDescription){
     createSkillBtn.textContent = "Analysiere...";
   }
 
+  const applyLocalAnalysis = (note) => {
+    const analysis = buildMockAnalysis(tracked);
+    const map = getSkillAnalysisMap();
+    const nextVersion = Number(map[tracked.skillId]?.version || 0) + 1;
+    const notes = Array.isArray(analysis.notes) ? analysis.notes.slice() : [];
+    if (note) notes.push(note);
+    map[tracked.skillId] = {
+      ...analysis,
+      notes,
+      model: "local-mock",
+      version: nextVersion,
+      createdAt: new Date().toISOString()
+    };
+    setSkillAnalysisMap(map);
+    lastAnalyzedSkillId = userSkillId;
+    renderSkillAnalysis(userSkillId);
+    if (!getQuests(userSkillId).length) {
+      ensureQuestsForSkill(userSkillId, { skipRemote: true });
+      renderQuests();
+    }
+    return true;
+  };
+
   try {
     const userDesc = (userDescription || "").trim();
     if (!isSupabaseReady()) {
-      const analysis = buildMockAnalysis(tracked);
-      const map = getSkillAnalysisMap();
-      const nextVersion = Number(map[tracked.skillId]?.version || 0) + 1;
-      map[tracked.skillId] = {
-        ...analysis,
-        model: "local-mock",
-        version: nextVersion,
-        createdAt: new Date().toISOString()
-      };
-      setSkillAnalysisMap(map);
-      lastAnalyzedSkillId = userSkillId;
-      renderSkillAnalysis(userSkillId);
-      if (!getQuests(userSkillId).length) {
-        ensureQuestsForSkill(userSkillId, { skipRemote: true });
-        renderQuests();
-      }
+      applyLocalAnalysis("Lokaler Stub (kein API).");
       toast("Analyse fertig", "Lokaler Stub (kein API).");
       return true;
     }
@@ -2494,8 +2502,9 @@ async function requestSkillAnalysis(userSkillId, userDescription){
     const { data } = await supabaseClient.auth.getSession();
     const token = data?.session?.access_token;
     if (!token) {
-      toast("Login fehlt", "Bitte einloggen.");
-      return false;
+      applyLocalAnalysis("Lokaler Stub (kein Login).");
+      toast("Analyse fertig", "Lokaler Stub (kein Login).");
+      return true;
     }
 
     const response = await fetch("/api/skill-analyze", {
@@ -2511,8 +2520,9 @@ async function requestSkillAnalysis(userSkillId, userDescription){
     });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok || !payload?.ok) {
-      toast("Analyse fehlgeschlagen", payload?.message || "Fehler bei der Analyse.");
-      return false;
+      applyLocalAnalysis("Lokaler Stub (API Fehler).");
+      toast("Analyse fehlgeschlagen", payload?.message || "API Fehler. Lokaler Stub genutzt.");
+      return true;
     }
 
     const map = getSkillAnalysisMap();
@@ -2527,8 +2537,9 @@ async function requestSkillAnalysis(userSkillId, userDescription){
     toast("Analyse fertig", "Ergebnis gespeichert.");
     return true;
   } catch (err) {
-    toast("Analyse fehlgeschlagen", err?.message || "Fehler");
-    return false;
+    applyLocalAnalysis("Lokaler Stub (Fehler).");
+    toast("Analyse fehlgeschlagen", err?.message || "Fehler. Lokaler Stub genutzt.");
+    return true;
   } finally {
     analysisBusy = false;
     if (createSkillBtn) {

@@ -106,7 +106,7 @@ body[data-theme="dark"] .btn{
 }
 body[data-theme="dark"] .btn.primary{
   background: linear-gradient(135deg, var(--accent), var(--accent2));
-  color: #0b1117;
+  color: #f8fafc;
 }
 
 body[data-theme="dark"]::before{
@@ -5725,6 +5725,7 @@ body.authed .mini-btn{
   background: rgba(255,255,255,.9);
   border: 1px solid rgba(31,35,40,.12);
   box-shadow: 0 12px 22px rgba(20,24,32,.08);
+  color: var(--text);
 }
 body.authed .btn.primary{
   border: none;
@@ -5738,7 +5739,7 @@ body[data-theme="dark"].authed .mini-btn{
   box-shadow: 0 16px 28px rgba(0,0,0,.35);
 }
 body[data-theme="dark"].authed .btn.primary{
-  color: #0b1117;
+  color: #f8fafc;
 }
 
 body.authed .today-list li,
