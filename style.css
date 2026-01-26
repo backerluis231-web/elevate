@@ -2874,8 +2874,8 @@ body[data-theme="dark"]:not(.authed) .hero-dot{
   align-items: start;
 }
 .price-grid{
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 22px;
   justify-content: center;
   margin: 0 auto;
